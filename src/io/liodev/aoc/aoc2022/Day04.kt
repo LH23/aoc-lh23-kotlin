@@ -1,7 +1,6 @@
 package io.liodev.aoc.aoc2022
 
 import io.liodev.aoc.Day
-import io.liodev.aoc.println
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 
@@ -10,15 +9,15 @@ class Day04(input: String) : Day<Int> {
 
     data class RangePair(val range1: IntRange, val range2: IntRange) {
         fun totalOverlap() = range1 contains range2 || range2 contains range1
-        fun partialOverlap() = (range1.toSet() intersect range2.toSet()).isNotEmpty()
+        fun partialOverlap() = range1 overlaps range2
     }
 
     private fun String.toRangePair(): RangePair {
         val result = Regex("""(\d+)-(\d+),(\d+)-(\d+)""").find(this)
-        val (r1s, r1e, r2s, r2e) = result!!.destructured
+        val (start1, end1, start2, end2) = result!!.destructured
         return RangePair(
-            r1s.toInt()..r1e.toInt(),
-            r2s.toInt()..r2e.toInt()
+            start1.toInt()..end1.toInt(),
+            start2.toInt()..end2.toInt()
         )
     }
 
@@ -36,6 +35,8 @@ class Day04(input: String) : Day<Int> {
 infix fun IntRange.contains(other: IntRange): Boolean =
     this.first <= other.first && other.last <= this.last
 
+infix fun IntRange.overlaps(other: IntRange) =
+    this.first <= other.last && other.first <= this.last
 
 fun main() {
     val name = Day04::class.simpleName
