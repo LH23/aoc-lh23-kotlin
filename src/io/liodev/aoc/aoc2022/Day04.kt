@@ -40,7 +40,7 @@ infix fun IntRange.overlaps(other: IntRange) =
 
 fun main() {
     val name = Day04::class.simpleName
-    val testInput = readInputAsString("src/2022/input/${name}_test.txt")
-    val realInput = readInputAsString("src/2022/input/${name}.txt")
+    val testInput = readInputAsString("src/input/2022/${name}_test.txt")
+    val realInput = readInputAsString("src/input/2022/${name}.txt")
     runDay(Day04(testInput), Day04(realInput))
 }

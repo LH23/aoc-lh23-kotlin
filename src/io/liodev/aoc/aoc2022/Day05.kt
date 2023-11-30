@@ -74,7 +74,7 @@ private fun List<List<Char>>.createStacks(): List<Stack<Char>> {
 
 fun main() {
     val name = Day05::class.simpleName
-    val testInput = readInputAsString("src/2022/input/${name}_test.txt")
-    val realInput = readInputAsString("src/2022/input/${name}.txt")
+    val testInput = readInputAsString("src/input/2022/${name}_test.txt")
+    val realInput = readInputAsString("src/input/2022/${name}.txt")
     runDay(Day05(testInput), Day05(realInput))
 }
