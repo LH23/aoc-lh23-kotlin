@@ -14,11 +14,14 @@ class Day05(private val input: String) : Day<String> {
         .split('\n')
         .map { it.toInstruction() }
 
+    private val stacks = parseStacks(input)
+    private val stacks2 = stacks.map { it.clone() as Stack<Char>}
+
     private fun parseStacks(input: String) = input
-            .substring(0, input.indexOf("\n 1 "))
-            .split('\n')
-            .map { it.toRow() }
-            .createStacks()
+        .substring(0, input.indexOf("\n 1 "))
+        .split('\n')
+        .map { it.toRow() }
+        .createStacks()
 
     private fun moveWithCrateMover9000(inst: Instruction, stacks: List<Stack<Char>>) {
         repeat(inst.num) {
@@ -33,23 +36,30 @@ class Day05(private val input: String) : Day<String> {
     }
 
     override fun solvePart1(): String {
-        val stacks = parseStacks(input)
-        instructions.forEach { moveWithCrateMover9000(it,stacks) }
+        instructions.forEach { moveWithCrateMover9000(it, stacks) }
         return stacks.map { it.pop() }.joinToString("")
     }
 
     override fun solvePart2(): String {
-        val stacks = parseStacks(input)
-        instructions.forEach { moveWithCrateMover9001(it, stacks) }
-        return stacks.map { it.pop() }.joinToString("")
+        instructions.forEach { moveWithCrateMover9001(it, stacks2) }
+        return stacks2.map { it.pop() }.joinToString("")
     }
 }
 
 class Instruction(val num: Int, val from: Int, val to: Int)
+
 private fun String.toInstruction(): Instruction {
     val regex = Regex("""move (\d+) from (\d+) to (\d+)""")
     val (i, f, t) = regex.find(this)!!.destructured
     return Instruction(i.toInt(), f.toInt(), t.toInt())
+}
+
+private fun String.toRow(): List<Char> {
+    return this
+        .replace("    ", "[-]")
+        .replace("] [", "][")
+        .chunked(3)
+        .map { it[1] }
 }
 
 private fun List<List<Char>>.createStacks(): List<Stack<Char>> {
@@ -61,15 +71,6 @@ private fun List<List<Char>>.createStacks(): List<Stack<Char>> {
         }
     }
 }
-
-private fun String.toRow(): List<Char> {
-    return this
-        .replace("    ", "[-]")
-        .replace("] [", "][")
-        .chunked(3)
-        .map { it[1] }
-}
-
 
 fun main() {
     val name = Day05::class.simpleName
