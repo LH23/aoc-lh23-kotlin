@@ -4,14 +4,14 @@ import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 
+// --- 2023 Day 1: Trebuchet?! ---
 class Day01(input: String) : Day<Int> {
     override val expectedValues = listOf(213, 53651, 281, 53894)
 
     private val calibrationInputs = input.split("\n")
 
     override fun solvePart1() = calibrationInputs
-        .map { input -> input.filter { it.isDigit() } }
-        .sumOf { "${it.first()}${it.last()}".toInt() }
+        .sumOf { input -> "${input.first(Char::isDigit)}${input.last(Char::isDigit)}".toInt() }
 
     override fun solvePart2() = calibrationInputs
         .sumOf { input -> "${input.firstNum()}${input.lastNum()}".toInt() }
