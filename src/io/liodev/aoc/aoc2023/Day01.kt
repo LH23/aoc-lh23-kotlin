@@ -6,15 +6,15 @@ import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 
 class Day01(input: String): Day<Int> {
-    // 12, 38, 15, and 77.
-    override val expectedValues = listOf(213, 53651, 281, -1)
+    override val expectedValues = listOf(213, 53651, 281, 53894)
 
-    private val parsedInput = parseInput(input)
+    private val calibrationInputs = input.split("\n")
+    override fun solvePart1() = calibrationInputs
+        .map { input -> input.filter { it.isDigit() } }
+        .sumOf { "${it.first()}${it.last()}".toInt() }
 
-    private fun parseInput(input: String): List<String> = input.split("\n")
-    override fun solvePart1() = parsedInput.map { it.filter { it.isDigit() } }.map { "${it.first()}${it.last()}".toInt() }.sum()
-
-    override fun solvePart2() = parsedInput.map { "${it.firstNum()}${it.lastNum()}".toInt() }.also { it.println() }.sum()
+    override fun solvePart2() = calibrationInputs
+        .sumOf { input -> "${input.firstNum()}${input.lastNum()}".toInt() }
 }
 
 private fun String.firstNum(): Char {
