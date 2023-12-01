@@ -1,7 +1,6 @@
 package io.liodev.aoc.aoc2023
 
 import io.liodev.aoc.Day
-import io.liodev.aoc.println
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 
@@ -9,6 +8,7 @@ class Day01(input: String) : Day<Int> {
     override val expectedValues = listOf(213, 53651, 281, 53894)
 
     private val calibrationInputs = input.split("\n")
+
     override fun solvePart1() = calibrationInputs
         .map { input -> input.filter { it.isDigit() } }
         .sumOf { "${it.first()}${it.last()}".toInt() }
@@ -30,7 +30,6 @@ private val nums = listOf(
 ).toMap()
 
 private fun String.firstNum() = nums[this.findAnyOf(nums.keys)!!.second]
-
 private fun String.lastNum() = nums[this.findLastAnyOf(nums.keys)!!.second]
 
 fun main() {
