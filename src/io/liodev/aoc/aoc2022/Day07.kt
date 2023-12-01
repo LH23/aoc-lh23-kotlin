@@ -1,48 +1,59 @@
 package io.liodev.aoc.aoc2022
 
 import io.liodev.aoc.Day
-import io.liodev.aoc.println
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
+import java.lang.Error
 
 // --- 2022 Day 7: No Space Left On Device ---
 class Day07(input: String) : Day<Long> {
-    // TEST P1 these directories are a and e; the sum of their total sizes is 95437 (94853 + 584)
-    override val expectedValues = listOf(95437L, 1447046, 24933642, 578710) // 40572957
+    override val expectedValues = listOf(95437L, 1447046, 24933642, 578710)
 
     private val consoleLines = input
         .split('\n')
-        .filter { it != "$ ls" && !it.startsWith("dir ") }
+        .filterNot { it.isLs() || it.isDir() }
 
     private fun createDirTree(consoleLines: List<String>): Map<String, Long> {
-        var currentPath = ""
-        val dirs = mutableMapOf<String, Long>()
+        val dirTree = DirTree()
         for (line in consoleLines) {
             when {
-                line.startsWith("$ cd ..") -> {
-                    currentPath = currentPath.substring(0, currentPath.lastIndexOf('/'))
-                }
-
-                line.startsWith("$ cd ") -> {
-                    currentPath = "$currentPath/${line.removePrefix("$ cd ")}"
-                        .replace("//", "/")
-                    dirs[currentPath] = 0
-                }
-
-                else -> {
-                    val size = line.split(' ')[0].toLong()
-                    dirs[currentPath] = dirs[currentPath]!! + size
-                }
+                line.isCdUp() -> dirTree.goUp()
+                line.isCd() -> dirTree.cdDir(line.removePrefix("$ cd "))
+                line.isFile() -> dirTree.addFileSize(line.split(' ')[0].toLong())
+                else -> error("Invalid command $line")
             }
         }
-        dirs.keys.sortedByDescending { it.length }.forEach { path ->
-            dirs[path] = dirs[path]!! + getSubdirSize(dirs, path)
-        }
-        return dirs
+        dirTree.acumSubdirSizes()
+        return dirTree.dirs
     }
 
-    private fun getSubdirSize(dirs: MutableMap<String, Long>, path: String): Long =
-        dirs.keys.filter { path.isSubdir(it) }.sumOf { dirs[it]!!.toLong() }
+    class DirTree(
+        private var currentPath: String = "",
+        val dirs: MutableMap<String, Long> = mutableMapOf()
+    ) {
+        fun goUp() {
+            currentPath = currentPath.substring(0, currentPath.lastIndexOf('/'))
+        }
+
+        fun cdDir(dir: String) {
+            currentPath = "$currentPath/$dir".replace("//", "/")
+            dirs[currentPath] = 0
+        }
+
+        fun addFileSize(size: Long) {
+            dirs[currentPath] = dirs[currentPath]!! + size
+        }
+
+        fun acumSubdirSizes() {
+            dirs.keys.sortedByDescending { it.length }.forEach { path ->
+                dirs[path] = dirs[path]!! + getSubdirSize(dirs, path)
+            }
+        }
+
+        private fun getSubdirSize(dirs: MutableMap<String, Long>, path: String): Long =
+            dirs.keys.filter { path.isSubdir(it) }.sumOf { dirs[it]!!.toLong() }
+
+    }
 
     override fun solvePart1() = createDirTree(consoleLines)
         .filter { (_, size) -> size <= 100_000 }
@@ -57,9 +68,17 @@ class Day07(input: String) : Day<Long> {
 
 }
 
+private fun String.isLs() = this == "$ ls"
+private fun String.isDir() = startsWith("dir ")
+private fun String.isCd() = startsWith("$ cd ")
+private fun String.isCdUp() = startsWith("$ cd ..")
+private fun String.isFile() = split(' ')[0].all { it.isDigit() }
+
 private fun String.isSubdir(other: String) =
-    (this == "/" && other != "/" && other.count { it == '/' } == 1) ||
-        (other.startsWith("$this/") && (other.count { it == '/' } == this.count { it == '/' } + 1))
+    (this == "/" && other != "/" && other.slashes() == 1) ||
+        (other.startsWith("$this/") && (other.slashes() == this.slashes() + 1))
+
+private fun String.slashes(): Int = count { it == '/' }
 
 fun main() {
     val name = Day07::class.simpleName
