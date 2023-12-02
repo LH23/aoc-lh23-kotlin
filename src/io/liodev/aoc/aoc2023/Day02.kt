@@ -11,33 +11,27 @@ class Day02(input: String) : Day<Int> {
     private val games = input.split('\n').map { it.toGame() }
 
     override fun solvePart1() = games.filter { game ->
-        game.grabs.all { it.valid(12, 13, 14) }
+        game.grabs.all {
+            it.red <= 12 && it.green <= 13 && it.blue <= 14
+        }
     }.sumOf { it.id }
 
     override fun solvePart2(): Int = games.map { game ->
-        game.calculateMinGrab()
+        Grab(
+            game.grabs.maxBy { it.red }.red,
+            game.grabs.maxBy { it.green }.green,
+            game.grabs.maxBy { it.blue }.blue
+        )
     }.sumOf { it.red * it.green * it.blue }
 }
 
-data class Game(val id: Int, val grabs: List<Grab>) {
-    fun calculateMinGrab() = Grab(
-        grabs.maxBy { it.red }.red,
-        grabs.maxBy { it.green }.green,
-        grabs.maxBy { it.blue }.blue
-    )
-}
-
+data class Game(val id: Int, val grabs: List<Grab>)
 private fun String.toGame() = Game(
     id = substringBefore(':').split(' ')[1].toInt(),
     grabs = substringAfter(':').trim().split(';').map { it.toGrab() }
 )
 
-data class Grab(val red: Int, val green: Int, val blue: Int) {
-    fun valid(totalRed: Int, totalGreen: Int, totalBlue: Int): Boolean {
-        return red <= totalRed && green <= totalGreen && blue <= totalBlue
-    }
-}
-
+data class Grab(val red: Int, val green: Int, val blue: Int)
 private fun String.toGrab(): Grab {
     val cubes = split(',').map { it.trim() }
     var red = 0
