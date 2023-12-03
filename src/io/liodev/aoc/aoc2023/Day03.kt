@@ -10,64 +10,63 @@ typealias Coord = Pair<Int, Int>
 class Day03(input: String) : Day<Int> {
     override val expectedValues = listOf(4361, 533784, 467835, 78826761)
 
-    private val schematic = input.split("\n").map { it.toList() }
+    private val schematic = input.split("\n").map { it.toList() + '.' }
 
-    override fun solvePart1(): Int {
-        val partNumbers = mutableListOf<Int>()
-        traverseSchematicToFindNumbers { numberFound, positionsToCheck ->
-            if (validatePartNumber(positionsToCheck)) partNumbers.add(numberFound)
-        }
-        return partNumbers.sum()
-    }
+    override fun solvePart1(): Int =
+        traverseSchematicToFindNumbers()
+            .filter { (_, positionsToCheck) -> validatePartNumber(positionsToCheck) }
+            .sumOf { it.first }
 
-    override fun solvePart2(): Int {
-        val gearRatios = mutableMapOf<Coord, MutableList<Int>>()
-        traverseSchematicToFindNumbers { numberFound, positionsToCheck ->
-            findGear(positionsToCheck)?.let { gearCoordinates ->
-                gearRatios.getOrPut(gearCoordinates) { mutableListOf() }.add(numberFound)
-            }
-        }
-        return gearRatios.filter { it.value.size == 2 }.values.sumOf { it[0] * it[1] }
-    }
 
-    private fun traverseSchematicToFindNumbers(numFound: (Int, Set<Coord>) -> Unit) {
-        val positionsToCheck = mutableSetOf<Coord>()
-        var currentNum = 0
-        for (i in schematic.indices) {
-            for (j in schematic[0].indices) {
-                if (schematic[i][j].isDigit()) {
-                    currentNum = currentNum * 10 + schematic[i][j].digitToInt()
-                    positionsToCheck.remove(i to j)
-                    positionsToCheck += neighborPositions(i, j)
-                } else if (currentNum != 0) {
-                    numFound(currentNum, positionsToCheck)
-                    currentNum = 0
-                    positionsToCheck.clear()
-                }
+    override fun solvePart2(): Int =
+        traverseSchematicToFindNumbers()
+            .map { (number, positionsToCheck) ->
+                findGear(positionsToCheck) to number
+            }.groupBy(keySelector = { it.first }, valueTransform = { it.second } )
+            .filter { it.value.size == 2 }
+            .values.sumOf { it[0] * it[1] }
+
+    private fun traverseSchematicToFindNumbers() = buildList {
+        var currentNum = ""
+        (schematic.indices * schematic[0].indices).forEach { (i, j) ->
+            if (schematic[i][j].isDigit()) {
+                currentNum += schematic[i][j]
+            } else if (currentNum != "") {
+                val positionsToCheck = getBorder(i, j - currentNum.length, currentNum.length)
+                add(currentNum.toInt() to positionsToCheck)
+                currentNum = ""
             }
         }
     }
 
-    private fun neighborPositions(i: Int, j: Int): List<Coord> = listOf(
-        i - 1 to j - 1, i to j - 1, i + 1 to j - 1,
-        i - 1 to j,                 i + 1 to j,
-        i - 1 to j + 1, i to j + 1, i + 1 to j + 1
-    )
+    private fun getBorder(i: Int, j: Int, length: Int): List<Coord> {
+        return buildList {
+            add(i to j - 1)
+            repeat(length + 2) {
+                add(i - 1 to j - 1 + it)
+                add(i + 1 to j - 1 + it)
+            }
+            add(i to j + length)
+        }
+    }
 
-    private fun validatePartNumber(positions: Set<Coord>) =
+    private fun validatePartNumber(positions: List<Coord>) =
         positions.any { (i, j) ->
             schematic.validIndex(i to j) && !schematic[i][j].isDigit() && schematic[i][j] != '.'
         }
 
-    private fun findGear(positions: Set<Coord>) =
+    private fun findGear(positions: List<Coord>) =
         positions.firstOrNull { (i, j) ->
             schematic.validIndex(i to j) && schematic[i][j] == '*'
         }
 
-    private fun List<List<Char>>.validIndex(ij: Coord): Boolean =
+    private fun List<List<Char>>.validIndex(ij: Coord) =
         ij.first in this.indices && ij.second in this[0].indices
 
 }
+
+private operator fun IntRange.times(other: IntRange): List<Pair<Int, Int>> =
+    this.flatMap { x -> other.map { y -> x to y } }
 
 fun main() {
     val name = Day03::class.simpleName
