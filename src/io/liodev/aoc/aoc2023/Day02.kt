@@ -23,29 +23,30 @@ class Day02(input: String) : Day<Int> {
             game.grabs.maxBy { it.blue }.blue
         )
     }.sumOf { it.red * it.green * it.blue }
-}
 
-data class Game(val id: Int, val grabs: List<Grab>)
-private fun String.toGame() = Game(
-    id = substringBefore(':').split(' ')[1].toInt(),
-    grabs = substringAfter(':').trim().split(';').map { it.toGrab() }
-)
+    private data class Game(val id: Int, val grabs: List<Grab>)
+    private fun String.toGame() = Game(
+        id = substringBefore(':').split(' ')[1].toInt(),
+        grabs = substringAfter(':').trim().split(';').map { it.toGrab() }
+    )
 
-data class Grab(val red: Int, val green: Int, val blue: Int)
-private fun String.toGrab(): Grab {
-    val cubes = split(',').map { it.trim() }
-    var red = 0
-    var green = 0
-    var blue = 0
-    for (color in cubes) {
-        when {
-            color.contains("red") -> red = color.split(' ')[0].toInt()
-            color.contains("green") -> green = color.split(' ')[0].toInt()
-            color.contains("blue") -> blue = color.split(' ')[0].toInt()
+    private data class Grab(val red: Int, val green: Int, val blue: Int)
+    private fun String.toGrab(): Grab {
+        val cubes = split(',').map { it.trim() }
+        var red = 0
+        var green = 0
+        var blue = 0
+        for (color in cubes) {
+            when {
+                color.contains("red") -> red = color.split(' ')[0].toInt()
+                color.contains("green") -> green = color.split(' ')[0].toInt()
+                color.contains("blue") -> blue = color.split(' ')[0].toInt()
+            }
         }
+        return Grab(red, green, blue)
     }
-    return Grab(red, green, blue)
 }
+
 
 fun main() {
     val name = Day02::class.simpleName
