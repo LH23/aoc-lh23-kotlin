@@ -10,19 +10,19 @@ typealias Coord = Pair<Int, Int>
 class Day03(input: String) : Day<Int> {
     override val expectedValues = listOf(4361, 533784, 467835, 78826761)
 
-    private val schematic = input.split("\n").map { it.toList() + '.' }
+    private val schematic = input.split("\n")
+        .map { it.toList() + '.' }  // adding . as workaround to "num at end of line" case
 
     override fun solvePart1(): Int =
         traverseSchematicToFindNumbers()
             .filter { (_, positionsToCheck) -> validatePartNumber(positionsToCheck) }
             .sumOf { it.first }
 
-
     override fun solvePart2(): Int =
         traverseSchematicToFindNumbers()
             .map { (number, positionsToCheck) ->
                 findGear(positionsToCheck) to number
-            }.groupBy(keySelector = { it.first }, valueTransform = { it.second } )
+            }.groupBy(keySelector = { it.first }, valueTransform = { it.second })
             .filter { it.value.size == 2 }
             .values.sumOf { it[0] * it[1] }
 
@@ -52,7 +52,7 @@ class Day03(input: String) : Day<Int> {
 
     private fun validatePartNumber(positions: List<Coord>) =
         positions.any { (i, j) ->
-            schematic.validIndex(i to j) && !schematic[i][j].isDigit() && schematic[i][j] != '.'
+            schematic.validIndex(i to j) && schematic[i][j] != '.'
         }
 
     private fun findGear(positions: List<Coord>) =
