@@ -33,8 +33,8 @@ fun Any?.println() = println(this)
 
 fun checkResult(testname: String, actual: Any?, expected: Any?) {
     if (actual == expected) {
-        println("$testname Correct, $actual == $expected")
+        println("✅ $testname Correct, $actual == $expected")
     } else {
-        throw IllegalStateException("$testname WRONG, $actual != $expected")
+        error("❌ $testname WRONG, $actual != $expected")
     }
 }
