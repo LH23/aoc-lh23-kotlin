@@ -16,15 +16,20 @@ class Day04(input: String) : Day<Int> {
         (2.0.pow(card.winnerNumbers - 1)).toInt()
     }
 
-    override fun solvePart2(): Int {
+    override fun solvePart2(): Int = cards.withIndex().let { cardsIndexed->
         val numCards = MutableList(cards.size) { 1 }
-        return cards.withIndex().sumOf { (i, card) ->
+        cardsIndexed.sumOf { (i, card) ->
             repeat(card.winnerNumbers) { offset ->
                 numCards[i + 1 + offset] += numCards[i]
             }
             numCards[i]
         }
     }
+
+    fun solvePart2Fold(): Int = cards.reversed().fold(emptyList<Int>()){ acc, card ->
+            val sum = 1 + (0 until card.winnerNumbers).sumOf { acc[it] }
+            listOf(sum) + acc
+        }.sum()
 
     data class Card(val winnerNumbers: Int)
 
