@@ -17,24 +17,22 @@ class Day04(input: String) : Day<Int> {
     }
 
     override fun solvePart2(): Int {
-        var acum = 0
         val numCards = MutableList(cards.size) { 1 }
-        for ((i, card) in cards.withIndex()) {
-            acum += numCards[i]
+        return cards.withIndex().sumOf { (i, card) ->
             repeat(card.winnerNumbers) { offset ->
                 numCards[i + 1 + offset] += numCards[i]
             }
+            numCards[i]
         }
-        return acum
     }
 
     data class Card(val winnerNumbers: Int)
 
     private fun String.toCard(): Card {
         val (ws, ns) = this.substringAfter(':').split("|")
-        val w = ws.split(" ").filter { it != "" }.map { it.toInt() }
-        val n = ns.split(" ").filter { it != "" }.map { it.toInt() }
-        return Card(n.count { it in w })
+        val winners = ws.split(' ').filter { it != "" }.map { it.toInt() }
+        val nums = ns.split(' ').filter { it != "" }.map { it.toInt() }
+        return Card(nums.count { it in winners })
     }
 }
 
