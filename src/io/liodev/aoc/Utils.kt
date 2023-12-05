@@ -1,7 +1,6 @@
 package io.liodev.aoc
 
 import java.io.IOException
-import java.lang.IllegalStateException
 import java.math.BigInteger
 import java.security.MessageDigest
 import kotlin.io.path.Path

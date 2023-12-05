@@ -1,10 +1,10 @@
 package io.liodev.aoc.aoc2023
 
+import io.liodev.aoc.utils.Coord
 import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
-
-typealias Coord = Pair<Int, Int>
+import io.liodev.aoc.utils.validIndex
 
 // --- 2023 Day 3: Gear Ratios ---
 class Day03(input: String) : Day<Int> {
@@ -32,36 +32,22 @@ class Day03(input: String) : Day<Int> {
             if (schematic[i][j].isDigit()) {
                 currentNum += schematic[i][j]
             } else if (currentNum != "") {
-                val positionsToCheck = getBorder(i, j - currentNum.length, currentNum.length)
+                val positionsToCheck = Coord(i, j - currentNum.length).getBorder(currentNum.length)
                 add(currentNum.toInt() to positionsToCheck)
                 currentNum = ""
             }
         }
     }
 
-    private fun getBorder(i: Int, j: Int, length: Int): List<Coord> {
-        return buildList {
-            add(i to j - 1)
-            repeat(length + 2) {
-                add(i - 1 to j - 1 + it)
-                add(i + 1 to j - 1 + it)
-            }
-            add(i to j + length)
-        }
-    }
-
     private fun validatePartNumber(positions: List<Coord>) =
         positions.any { (i, j) ->
-            schematic.validIndex(i to j) && schematic[i][j] != '.'
+            schematic.validIndex(Coord(i, j)) && schematic[i][j] != '.'
         }
 
     private fun findGear(positions: List<Coord>) =
         positions.firstOrNull { (i, j) ->
-            schematic.validIndex(i to j) && schematic[i][j] == '*'
+            schematic.validIndex(Coord(i, j)) && schematic[i][j] == '*'
         }
-
-    private fun List<List<Char>>.validIndex(ij: Coord) =
-        ij.first in this.indices && ij.second in this[0].indices
 
 }
 
