@@ -64,29 +64,26 @@ class Day05(val input: String) : Day<Long> {
             return value
         }
 
-        fun passRange(seedRange: LongRange): List<LongRange> {
+        fun passRange(range: LongRange): List<LongRange> {
             val convert = mutableListOf<LongRange>()
             val result = mutableListOf<LongRange>()
-            for (range in ranges) {
-                val y1 = maxOf(seedRange.first, range.source.first)
-                val y2 = minOf(seedRange.last - 1, range.source.last - 1)
+            for (mapperRange in ranges) {
+                val y1 = maxOf(range.first, mapperRange.source.first)
+                val y2 = minOf(range.last, mapperRange.source.last)
                 if (y1 <= y2) {
+                    val a1 = mapperRange.source.first
+                    val b1 = mapperRange.destination.first
                     convert.add(y1..y2)
-                    result.add(
-                        y1 - range.source.first + range.destination.first..y2 - range.source.first + range.destination.first
-                    )
+                    result.add(y1 - a1 + b1..y2 - a1 + b1)
                 }
             }
             convert.sortBy { it.first }
-            var cur = seedRange.first
-
-            for (range in convert) {
-                val y1 = range.first
-                val y2 = range.last
-                if (y1 > cur) result.add(LongRange(cur, y1 - 1))
-                cur = y2 + 1
+            var cur = range.first
+            for (convertRange in convert) {
+                if (convertRange.first > cur) result.add(cur..<convertRange.first)
+                cur = convertRange.last + 1
             }
-            if (cur <= seedRange.last - 1) result.add(LongRange(cur, seedRange.last))
+            if (cur <= range.last - 1) result.add(cur..range.last)
             return result
         }
 
