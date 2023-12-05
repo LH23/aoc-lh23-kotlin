@@ -30,10 +30,10 @@ fun String.md5() = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteA
  */
 fun Any?.println() = println(this)
 
-fun checkResult(testname: String, actual: Any?, expected: Any?) {
+fun checkResult(testName: String, actual: Any?, expected: Any?) {
     if (actual == expected) {
-        println("✅ $testname Correct, $actual == $expected")
+        println("✅ $testName Correct, $actual == $expected")
     } else {
-        error("❌ $testname WRONG, $actual != $expected")
+        error("❌ $testName WRONG, $actual != $expected")
     }
 }

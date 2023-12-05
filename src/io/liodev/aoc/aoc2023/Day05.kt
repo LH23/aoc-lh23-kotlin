@@ -71,10 +71,10 @@ class Day05(val input: String) : Day<Long> {
                 val y1 = maxOf(range.first, mapperRange.source.first)
                 val y2 = minOf(range.last, mapperRange.source.last)
                 if (y1 <= y2) {
-                    val a1 = mapperRange.source.first
-                    val b1 = mapperRange.destination.first
+                    val s1 = mapperRange.source.first
+                    val d1 = mapperRange.destination.first
                     convert.add(y1..y2)
-                    result.add(y1 - a1 + b1..y2 - a1 + b1)
+                    result.add(y1 - s1 + d1..y2 - s1 + d1)
                 }
             }
             convert.sortBy { it.first }
@@ -86,7 +86,6 @@ class Day05(val input: String) : Day<Long> {
             if (cur <= range.last - 1) result.add(cur..range.last)
             return result
         }
-
     }
 
     data class MapperRange(val source: LongRange, val destination: LongRange)
@@ -108,8 +107,7 @@ class Day05(val input: String) : Day<Long> {
     private fun String.parseSeedsAsSingleRange(): List<LongRange> =
         substringAfter("seeds: ")
             .split(" ")
-            .map { it.toLong() }
-            .map { it..it + 1 }
+            .map { it.toLong()..it.toLong() + 1 }
 
     private fun String.parseSeedsAsRanges(): List<LongRange> =
         substringAfter("seeds: ")
@@ -130,21 +128,8 @@ class Day05(val input: String) : Day<Long> {
 
     override fun solvePart1() = almanac.calculateMinLocationSlow()
 
-    override fun solvePart2(): Long = almanacWithRanges.calculateMinLocation()
+    override fun solvePart2() = almanacWithRanges.calculateMinLocation()
 
-}
-
-fun <R> List<String>.parts(map: (List<String>) -> R): List<R> = buildList {
-    var cur = ArrayList<String>()
-    for (s in this@parts) {
-        if (s == "") {
-            add(map(cur))
-            cur = ArrayList()
-            continue
-        }
-        cur.add(s)
-    }
-    if (cur.isNotEmpty()) add(map(cur))
 }
 
 fun main() {
