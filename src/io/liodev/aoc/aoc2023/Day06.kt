@@ -1,8 +1,10 @@
 package io.liodev.aoc.aoc2023
 
 import io.liodev.aoc.Day
+import io.liodev.aoc.println
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
+import kotlin.math.sqrt
 
 // 2023 Day06
 class Day06(input: String) : Day<Int> {
@@ -25,12 +27,11 @@ class Day06(input: String) : Day<Int> {
     override fun solvePart2(): Int = winningOptions(racesConcat[0], racesConcat[1])
 
     private fun winningOptions(time: Long, distance: Long): Int {
-        var wins = 0
-        for (speed in 1..<time) {
-            val traveled = speed * (time - speed)
-            if (traveled > distance) wins++
-        }
-        return wins
+        val roots = listOf(
+            ((-time + sqrt(1.0 * time * time - 4 * distance)) / -2).toInt(),
+            ((-time - sqrt(1.0 * time * time - 4 * distance)) / -2 -0.01).toInt()
+        )
+        return (roots[1] - roots[0])
     }
 }
 
@@ -38,5 +39,5 @@ fun main() {
     val name = Day06::class.simpleName
     val testInput = readInputAsString("src/input/2023/${name}_test.txt")
     val realInput = readInputAsString("src/input/2023/${name}.txt")
-    runDay(Day06(testInput), Day06(realInput))
+    runDay(Day06(testInput), Day06(realInput), printTimings = true)
 }
