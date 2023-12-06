@@ -17,10 +17,12 @@ class Day06(input: String) : Day<Int> {
     }.map { it.toLong() }
 
     override fun solvePart1() = races[0].indices.map {
-        val time = races[0][it]
-        val distance = races[1][it]
-        winningOptions(time.toLong(), distance.toLong())
+        val time = races[0][it].toLong()
+        val distance = races[1][it].toLong()
+        winningOptions(time, distance)
     }.reduce { a, b -> a * b }
+
+    override fun solvePart2(): Int = winningOptions(racesConcat[0], racesConcat[1])
 
     private fun winningOptions(time: Long, distance: Long): Int {
         var wins = 0
@@ -30,8 +32,6 @@ class Day06(input: String) : Day<Int> {
         }
         return wins
     }
-
-    override fun solvePart2(): Int = winningOptions(racesConcat[0], racesConcat[1])
 }
 
 fun main() {
