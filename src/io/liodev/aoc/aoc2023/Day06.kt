@@ -1,12 +1,11 @@
 package io.liodev.aoc.aoc2023
 
 import io.liodev.aoc.Day
-import io.liodev.aoc.println
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import kotlin.math.sqrt
 
-// 2023 Day06
+// --- 2023 Day 6: Wait For It ---
 class Day06(input: String) : Day<Int> {
     override val expectedValues = listOf(288, 781200, 71503, 49240091)
 
@@ -27,11 +26,8 @@ class Day06(input: String) : Day<Int> {
     override fun solvePart2(): Int = winningOptions(racesConcat[0], racesConcat[1])
 
     private fun winningOptions(time: Long, distance: Long): Int {
-        val roots = listOf(
-            ((-time + sqrt(1.0 * time * time - 4 * distance)) / -2).toInt(),
-            ((-time - sqrt(1.0 * time * time - 4 * distance)) / -2 -0.01).toInt()
-        )
-        return (roots[1] - roots[0])
+        val discriminant = sqrt(1.0 * time * time - 4 * distance)
+        return ((-time - discriminant) / -2 - 0.1).toInt() - ((-time + discriminant) / -2).toInt()
     }
 }
 
