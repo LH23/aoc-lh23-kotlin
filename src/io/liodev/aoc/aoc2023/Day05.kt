@@ -38,15 +38,12 @@ class Day05(val input: String) : Day<Long> {
             seedsRange.let { seedsRange ->
                 var listOfRanges = seedsRange
                 for (mapper in mappers) {
-                    val next = mutableListOf<LongRange>()
-                    for (range in listOfRanges) {
-                        next += mapper.passRange(range)
+                    listOfRanges = listOfRanges.fold(listOf()) { acc, range ->
+                        acc + mapper.passRange(range)
                     }
-                    listOfRanges = next
                 }
                 listOfRanges.minOf { it.first }
             }
-
     }
 
     data class Mapper(val ranges: List<MapperRange>) {
