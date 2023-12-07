@@ -18,20 +18,7 @@ class Day07(input: String) : Day<Long> {
             this.substringAfter(" ").toInt()
         )
 
-    data class Hand(val cards: List<Char>, val jokerEnabled: Boolean = false) : Comparable<Hand> {
-
-        override fun compareTo(other: Hand): Int {
-            return if (type().rank != other.type().rank) {
-                type().rank.compareTo(other.type().rank)
-            } else {
-                for (i in cards.indices) {
-                    if (value(i) != other.value(i)) {
-                        return value(i).compareTo(other.value(i))
-                    }
-                }
-                0
-            }
-        }
+    data class Hand(val cards: List<Char>, val jokerEnabled: Boolean = false) {
 
         enum class Type(val rank: Int) {
             FIVE(7),
@@ -43,7 +30,7 @@ class Day07(input: String) : Day<Long> {
             HIGHCARD(1),
         }
 
-        private fun type(): Type {
+        fun type(): Type {
             val cardsToUse = if (jokerEnabled) cards.replaceJ() else cards
             val groupSizes = cardsToUse.groupingBy { it }.eachCount().values.sortedDescending()
             return when {
@@ -64,27 +51,30 @@ class Day07(input: String) : Day<Long> {
             else this.map { if (it == 'J') joker else it }
         }
 
-        private fun value(i: Int): Int {
+        fun values(): String = (0..4).map { i -> this.value(i) }.joinToString("")
+
+        private fun value(i: Int): Char {
             return when (val c = cards[i]) {
-                'A' -> 14
-                'K' -> 13
-                'Q' -> 12
-                'J' -> if (jokerEnabled) 1 else 11
-                'T' -> 10
-                else -> c - '0'
+                'A' -> 'z'
+                'K' -> 'y'
+                'Q' -> 'x'
+                'J' -> if (jokerEnabled) '0' else 'w'
+                'T' -> 'v'
+                else -> c
             }
         }
+
     }
 
     override fun solvePart1(): Long = cardsWithBid
-        .sortedBy { it.first }
+        .sortedWith(compareBy({ it.first.type().rank }, { it.first.values() }))
         .withIndex().sumOf { (i, pair) ->
             (i + 1) * pair.second.toLong()
         }
 
     override fun solvePart2(): Long = cardsWithBid
         .map { it.first.copy(jokerEnabled = true) to it.second }
-        .sortedBy { it.first }
+        .sortedWith(compareBy({ it.first.type().rank }, { it.first.values() }))
         .withIndex().sumOf { (i, pair) ->
             (i + 1) * pair.second.toLong()
         }
