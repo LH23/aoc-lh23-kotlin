@@ -45,17 +45,16 @@ class Day07(input: String) : Day<Long> {
 
         private fun type(): Type {
             val cardsToUse = if (jokerEnabled) cards.replaceJ() else cards
-            val groups = cardsToUse.groupingBy { it }.eachCount().values.sortedDescending()
-            val type = when {
-                groups[0] == 5 -> Type.FIVE
-                groups[0] == 4 -> Type.FOUR
-                groups[0] == 3 && groups[1] == 2 -> Type.FULLHOUSE
-                groups[0] == 3 -> Type.THREE
-                groups[0] == 2 && groups[1] == 2 -> Type.TWOPAIRS
-                groups[0] == 2 -> Type.PAIR
+            val groupSizes = cardsToUse.groupingBy { it }.eachCount().values.sortedDescending()
+            return when {
+                groupSizes[0] == 5 -> Type.FIVE
+                groupSizes[0] == 4 -> Type.FOUR
+                groupSizes[0] == 3 && groupSizes[1] == 2 -> Type.FULLHOUSE
+                groupSizes[0] == 3 -> Type.THREE
+                groupSizes[0] == 2 && groupSizes[1] == 2 -> Type.TWOPAIRS
+                groupSizes[0] == 2 -> Type.PAIR
                 else -> Type.HIGHCARD
             }
-            return type
         }
 
         private fun List<Char>.replaceJ(): List<Char> {
@@ -90,7 +89,6 @@ class Day07(input: String) : Day<Long> {
             (i + 1) * pair.second.toLong()
         }
 }
-
 
 fun main() {
     val name = Day07::class.simpleName
