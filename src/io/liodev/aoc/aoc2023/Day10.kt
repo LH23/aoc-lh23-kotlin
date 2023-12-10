@@ -48,20 +48,28 @@ class Day10(input: String) : Day<Int> {
     }
 
     override fun solvePart2(): Int {
-        var inside = 0
         val pipeLoop = createPipeLoop()
+
         val pipeMatrix = MutableList(pipes.size) { MutableList(pipes[0].size) { '.' } }
         pipeLoop.forEach { pipeMatrix[it] = pipes[it] }
         pipeMatrix[pipeLoop[0]] = replaceS(pipeLoop[0], pipeLoop[1], pipeLoop.last())
-        pipeMatrix.indices.forEach { i ->
-            pipeMatrix[0].indices.forEach { j ->
-                if (pipeMatrix[i][j] == '.' && pipeMatrix.isInside(i, j, pipeLoop)) {
-                    pipeMatrix[i][j] = 'I' // visual inspection only
-                    inside++
-                }
+
+        return pipeMatrix.sumOf { row -> numInsides(row) }
+    }
+
+    private fun numInsides(row: MutableList<Char>): Int {
+        var isInside = false
+        var inside = 0
+        val filtered = row.filter { it != '-' }
+        for (i in 0..<filtered.lastIndex) {
+            if (filtered[i] == '.' && isInside) inside++
+            if (filtered[i] == '|' ||
+                filtered[i].toString() + filtered[i + 1] == "L7" ||
+                filtered[i].toString() + filtered[i + 1] == "FJ"
+            ) {
+                isInside = !isInside
             }
         }
-        //pipeMatrix.printMatrix()
         return inside
     }
 
@@ -79,19 +87,6 @@ class Day10(input: String) : Day<Int> {
             s + Coord(0, -1) == last && s + Coord(-1, 0) == next -> 'J'
             else -> error("invalid S")
         }
-    }
-
-    private fun List<List<Char>>.isInside(i: Int, j: Int, pipeLoop: List<Coord>): Boolean {
-        return (j + 1..this.lastIndex)
-            .filter { nj -> Coord(i, nj) in pipeLoop }
-            .map { nj -> this[i][nj] }
-            .filter { it != '-' }
-            .joinToString("") { it.toString() }
-            .replace("F7", "") // ignore border
-            .replace("LJ", "") // ignore border
-            .replace("L7", "|") // count L7 pipe as one
-            .replace("FJ", "|") // count FJ pipe as one
-            .length % 2 == 1
     }
 
     companion object {
