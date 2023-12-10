@@ -6,6 +6,7 @@ import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.Coord
 import io.liodev.aoc.utils.get
 import io.liodev.aoc.utils.set
+import io.liodev.aoc.utils.times
 import io.liodev.aoc.utils.validIndex
 
 // --- 2023 Day 10: Pipe Maze ---
@@ -17,11 +18,7 @@ class Day10(input: String) : Day<Int> {
     override fun solvePart1(): Int = (createPipeLoop().size + 1) / 2
 
     private fun createPipeLoop(): List<Coord> = buildList {
-        pipes.indices.forEach { i ->
-            pipes[0].indices.forEach { j ->
-                if (pipes[i][j] == 'S') add(Coord(i, j))
-            }
-        }
+        add(Coord((pipes.indices * pipes[0].indices).first() { (i,j) -> pipes[i][j] == 'S' }))
         while (true) {
             val nextPipes = calculateNext(this)
             if (nextPipes.isEmpty()) break
