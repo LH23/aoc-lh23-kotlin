@@ -30,3 +30,17 @@ fun Pair<Int, Int>.toCoord() = Coord(this)
 
 fun List<List<Any?>>.validIndex(coord: Coord) =
     coord.r in this.indices && coord.c in this[0].indices
+
+operator fun <E> MutableList<MutableList<E>>.set(coord: Coord, value: E) {
+    this[coord.r][coord.c] = value
+}
+
+operator fun <E> List<List<E>>.get(coord: Coord): E {
+    return this[coord.r][coord.c]
+}
+
+fun <E> MutableList<MutableList<E>>.printMatrix() {
+    this.forEach { row ->
+        println(row.joinToString("") { it.toString() })
+    }
+}
