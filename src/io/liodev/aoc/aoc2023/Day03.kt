@@ -4,6 +4,7 @@ import io.liodev.aoc.utils.Coord
 import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
+import io.liodev.aoc.utils.times
 import io.liodev.aoc.utils.validIndex
 
 // --- 2023 Day 3: Gear Ratios ---
@@ -50,9 +51,6 @@ class Day03(input: String) : Day<Int> {
         }
 
 }
-
-private operator fun IntRange.times(other: IntRange): List<Pair<Int, Int>> =
-    this.flatMap { x -> other.map { y -> x to y } }
 
 fun main() {
     val name = Day03::class.simpleName

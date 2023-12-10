@@ -44,3 +44,6 @@ fun <E> MutableList<MutableList<E>>.printMatrix() {
         println(row.joinToString("") { it.toString() })
     }
 }
+
+operator fun IntRange.times(other: IntRange): List<Pair<Int, Int>> =
+    this.flatMap { x -> other.map { y -> x to y } }
