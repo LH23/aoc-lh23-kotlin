@@ -1,24 +1,32 @@
 package io.liodev.aoc.utils
 
-data class Coord(val x: Int, val y: Int) {
+data class Coord(val r: Int, val c: Int) {
     constructor(pair: Pair<Int, Int>) : this(pair.first, pair.second)
 
     fun getBorder(length: Int = 1): List<Coord> {
         return buildList {
-            add(Coord(x, y - 1))
+            add(Coord(r, c - 1))
             repeat(length + 2) {
-                add(Coord(x - 1, y - 1 + it))
-                add(Coord(x + 1, y - 1 + it))
+                add(Coord(r - 1, c - 1 + it))
+                add(Coord(r + 1, c - 1 + it))
             }
-            add(Coord(x, y + length))
+            add(Coord(r, c + length))
         }
     }
 
-    fun validIndex(w: Int, h: Int) = x in 0 until w && y in 0 until h
+    override fun toString(): String {
+        return "$r,$c"
+    }
+
+    fun validIndex(w: Int, h: Int) = r in 0 until h && c in 0 until w
+    operator fun plus(other: Coord): Coord = Coord(this.r + other.r, this.c + other.c)
+    fun validIndex(array: List<List<Char>>): Boolean {
+        return validIndex(array.size, array[0].size)
+    }
 
 }
 
 fun Pair<Int, Int>.toCoord() = Coord(this)
 
 fun List<List<Any?>>.validIndex(coord: Coord) =
-    coord.x in this.indices && coord.y in this[0].indices
+    coord.r in this.indices && coord.c in this[0].indices
