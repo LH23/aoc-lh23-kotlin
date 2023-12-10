@@ -9,7 +9,7 @@ import io.liodev.aoc.utils.validIndex
 
 // 2023 Day10
 class Day10(input: String) : Day<Int> {
-    override val expectedValues = listOf(70, 7173, 8, -1)
+    override val expectedValues = listOf(70, 7173, 8, 291)
 
     private val pipes = input.split("\n").map { it.toList() }
 
@@ -18,34 +18,50 @@ class Day10(input: String) : Day<Int> {
     data class PipePath(val valid: String, val dir: Coord, val pipe: Char, val next: Coord)
 
     override fun solvePart2(): Int {
+        var inside = 0
         val pipeLoop = createPipeLoop()
-        println(pipeLoop)
         val pipeMatrix = MutableList(pipes.size) { MutableList(pipes[0].size) { '.' } }
         pipeLoop.forEach { pipeMatrix[it] = pipes[it] }
-        pipeMatrix.print()
-
-        //pipeMatrix[pipeLoop[0]] = replaceS(pipeLoop[0], pipeLoop[1], pipeLoop.last())
+        //pipeMatrix.print()
+        pipeMatrix[pipeLoop[0]] = replaceS(pipeLoop[0], pipeLoop[1], pipeLoop.last())
         pipeMatrix.indices.forEach { i ->
             pipeMatrix[0].indices.forEach { j ->
-                if (pipeMatrix[i][j] == '.' && pipeMatrix.inside(i,j, pipeLoop)) pipeMatrix[i][j] = 'I'
+                if (pipeMatrix[i][j] == '.' && pipeMatrix.inside(i, j, pipeLoop)) {
+                    pipeMatrix[i][j] == 'I'
+                    inside++
+                }
             }
         }
-        pipeMatrix.print()
-        return pipeMatrix.sumOf { row -> row.count { value -> value == 'I' } }
+        //pipeMatrix.print()
+        return inside
     }
 
+    private fun replaceS(s: Coord, next: Coord, last: Coord): Char {
+        return when {
+            next.r == last.r -> '-'
+            next.c == last.c -> '|'
+            s + Coord(0, 1) == next && s + Coord(-1, 0) == last -> 'L'
+            s + Coord(0, 1) == last && s + Coord(-1, 0) == next -> 'L'
+            s + Coord(0, -1) == next && s + Coord(1, 0) == last -> '7'
+            s + Coord(0, -1) == last && s + Coord(1, 0) == next -> '7'
+            s + Coord(0, 1) == next && s + Coord(1, 0) == last -> 'F'
+            s + Coord(0, 1) == last && s + Coord(1, 0) == next -> 'F'
+            s + Coord(0, -1) == next && s + Coord(-1, 0) == last -> 'J'
+            s + Coord(0, -1) == last && s + Coord(-1, 0) == next -> 'J'
+            else -> error("invalid S")
+        }
+    }
 
     private fun List<List<Char>>.inside(i: Int, j: Int, pipeLoop: List<Coord>): Boolean {
         return (j + 1..this.lastIndex)
-            .filter { nj -> Coord(i,nj) in pipeLoop }
-            .map{ nj -> this[i][nj] }
+            .filter { nj -> Coord(i, nj) in pipeLoop }
+            .map { nj -> this[i][nj] }
             .filter { it != '-' }
-            .joinToString(""){ it.toString() }
-            .replace("F7", "")
-            .replace("LJ", "")
-            .replace("L7", "|")
-            .replace("FJ", "|")
-            .also { if (it.isNotEmpty()) it.println() }
+            .joinToString("") { it.toString() }
+            .replace("F7", "") // ignore border
+            .replace("LJ", "") // ignore border
+            .replace("L7", "|") // count L7 pipe as one
+            .replace("FJ", "|") // count FJ pipe as one
             .length % 2 == 1
     }
 
@@ -114,5 +130,5 @@ fun main() {
     val name = Day10::class.simpleName
     val testInput = readInputAsString("src/input/2023/${name}_test2.txt")
     val realInput = readInputAsString("src/input/2023/${name}.txt")
-    runDay(Day10(testInput), Day10(realInput), skipTests = listOf(true, true, false, false))
+    runDay(Day10(testInput), Day10(realInput), printTimings = true)
 }
