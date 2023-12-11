@@ -14,8 +14,9 @@ class Day10(input: String) : Day<Int> {
     override val expectedValues = listOf(70, 7173, 8, 291)
 
     private val pipes = input.split("\n").map { it.toList() }
+    private val pipeLoop = createPipeLoop()
 
-    override fun solvePart1(): Int = (createPipeLoop().size + 1) / 2
+    override fun solvePart1(): Int = (pipeLoop.size + 1) / 2
 
     private fun createPipeLoop(): List<Coord> = buildList {
         add(Coord((pipes.indices * pipes[0].indices).first() { (i,j) -> pipes[i][j] == 'S' }))
@@ -45,8 +46,6 @@ class Day10(input: String) : Day<Int> {
     }
 
     override fun solvePart2(): Int {
-        val pipeLoop = createPipeLoop()
-
         val pipeMatrix = MutableList(pipes.size) { MutableList(pipes[0].size) { '.' } }
         pipeLoop.forEach { pipeMatrix[it] = pipes[it] }
         pipeMatrix[pipeLoop[0]] = replaceS(pipeLoop[0], pipeLoop[1], pipeLoop.last())
