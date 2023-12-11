@@ -26,22 +26,22 @@ data class Coord(val r: Int, val c: Int) {
 
     operator fun plus(other: Coord): Coord = Coord(this.r + other.r, this.c + other.c)
 
-    fun Pair<Int, Int>.toCoord() = Coord(this)
-
-    fun List<List<Any?>>.validIndex(coord: Coord) =
-        coord.r in this.indices && coord.c in this[0].indices
-
-    operator fun <E> MutableList<MutableList<E>>.set(coordinates: Coord, value: E) {
-        this[coordinates.r][coordinates.c] = value
-    }
-
-    operator fun <E> List<List<E>>.get(coordinates: Coord): E {
-        return this[coordinates.r][coordinates.c]
-    }
 }
 
+fun Pair<Int, Int>.toCoord() = Coord(this)
 
-fun <E> MutableList<MutableList<E>>.printMatrix() {
+fun List<List<Any?>>.validIndex(coord: Coord) =
+    coord.r in this.indices && coord.c in this[0].indices
+
+operator fun <E> List<MutableList<E>>.set(coordinates: Coord, value: E) {
+    this[coordinates.r][coordinates.c] = value
+}
+
+operator fun <E> List<List<E>>.get(coordinates: Coord): E {
+    return this[coordinates.r][coordinates.c]
+}
+
+fun <E> List<List<E>>.printMatrix() {
     this.forEach { row ->
         println(row.joinToString("") { it.toString() })
     }
