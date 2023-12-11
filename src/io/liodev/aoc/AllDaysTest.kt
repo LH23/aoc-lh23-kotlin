@@ -1,0 +1,51 @@
+package io.liodev.aoc
+
+import io.liodev.aoc.aoc2023.Day01
+import io.liodev.aoc.aoc2023.Day02
+import io.liodev.aoc.aoc2023.Day03
+import io.liodev.aoc.aoc2023.Day04
+import io.liodev.aoc.aoc2023.Day05
+import io.liodev.aoc.aoc2023.Day06
+import io.liodev.aoc.aoc2023.Day07
+import io.liodev.aoc.aoc2023.Day08
+import io.liodev.aoc.aoc2023.Day09
+import io.liodev.aoc.aoc2023.Day10
+import io.liodev.aoc.aoc2023.Day11
+import org.junit.jupiter.api.Test
+import kotlin.reflect.KClass
+
+class AllDaysTest {
+
+    private fun runTestForDay(kDay: KClass<out Day<*>>, year: Int = 2023) {
+        val name = kDay.simpleName
+        val testInput = readInputAsString("src/input/$year/${name}_test.txt")
+        val realInput = readInputAsString("src/input/$year/${name}.txt")
+        val testDay = kDay.constructors.first().call(testInput)
+        val realDay = kDay.constructors.first().call(realInput)
+        runDay(testDay, realDay)
+    }
+
+    // 2023
+    @Test fun aoc2023day01() = runTestForDay(Day01::class)
+    @Test fun aoc2023day02() = runTestForDay(Day02::class)
+    @Test fun aoc2023day03() = runTestForDay(Day03::class)
+    @Test fun aoc2023day04() = runTestForDay(Day04::class)
+    @Test fun aoc2023day05() = runTestForDay(Day05::class)
+    @Test fun aoc2023day06() = runTestForDay(Day06::class)
+    @Test fun aoc2023day07() = runTestForDay(Day07::class)
+    @Test fun aoc2023day08() = runTestForDay(Day08::class)
+    @Test fun aoc2023day09() = runTestForDay(Day09::class)
+    @Test fun aoc2023day10() = runTestForDay(Day10::class)
+    @Test fun aoc2023day11() = runTestForDay(Day11::class)
+
+
+    // 2022
+    @Test fun aoc2022day01() = runTestForDay(io.liodev.aoc.aoc2022.Day01::class, 2022)
+    @Test fun aoc2022day02() = runTestForDay(io.liodev.aoc.aoc2022.Day02::class, 2022)
+    @Test fun aoc2022day03() = runTestForDay(io.liodev.aoc.aoc2022.Day03::class, 2022)
+    @Test fun aoc2022day04() = runTestForDay(io.liodev.aoc.aoc2022.Day04::class, 2022)
+    @Test fun aoc2022day05() = runTestForDay(io.liodev.aoc.aoc2022.Day05::class, 2022)
+    @Test fun aoc2022day06() = runTestForDay(io.liodev.aoc.aoc2022.Day06::class, 2022)
+    @Test fun aoc2022day07() = runTestForDay(io.liodev.aoc.aoc2022.Day07::class, 2022)
+
+}

@@ -9,6 +9,7 @@ import io.liodev.aoc.utils.times
 
 // --- 2023 Day 11: Cosmic Expansion ---
 class Day11(input: String) : Day<Long> {
+
     override val expectedValues = listOf(374L, 9639160, 82000210, 752936133304)
 
     private val galaxyMap = input.split("\n").map { it.toList() }.toGalaxyMap()
