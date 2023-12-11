@@ -1,6 +1,7 @@
 package io.liodev.aoc.aoc2023
 
 import io.liodev.aoc.Day
+import io.liodev.aoc.println
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.Coord
@@ -32,6 +33,7 @@ private fun List<List<Char>>.toGalaxyMap(): GalaxyMap {
     val emptyRows = skymap.indices.filter { i -> skymap[i].all { it == '.' } }
     val emptyColumns =
         skymap[0].indices.filter { j -> skymap.indices.all { i -> skymap[i][j] == '.' } }
+
     return GalaxyMap(galaxies, emptyRows, emptyColumns)
 }
 
@@ -40,6 +42,7 @@ data class GalaxyMap(
     val emptyRows: List<Int>,
     val emptyColumns: List<Int>
 ) {
+
     val galaxyPairs: Set<Set<Coord>> =
         (galaxies * galaxies)
             .map { (x, y) -> setOf(x, y) }
@@ -51,8 +54,9 @@ data class GalaxyMap(
         val maxCol = maxOf(g1.c, g2.c)
         val minRow = minOf(g1.r, g2.r)
         val maxRow = maxOf(g1.r, g2.r)
-        return (maxCol - minCol + (minCol..maxCol).count { it in emptyColumns } * (multiplier-1)) +
-                (maxRow - minRow + (minRow..maxRow).count { it in emptyRows } * (multiplier-1))
+        val emptyColsBetween = emptyColumns.count { it < maxCol } - emptyColumns.count { it < minCol }
+        val emptyRowsBetween = emptyRows.count { it < maxRow } - emptyRows.count { it < minRow }
+        return (maxCol - minCol + emptyColsBetween * (multiplier-1)) + (maxRow - minRow + emptyRowsBetween * (multiplier-1))
     }
 }
 
