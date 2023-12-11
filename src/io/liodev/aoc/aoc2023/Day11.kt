@@ -17,7 +17,7 @@ class Day11(input: String) : Day<Long> {
     }
 
     override fun solvePart2() = galaxyMap.galaxyPairs.sumOf { gs ->
-        val distance = galaxyMap.getDistance(gs.first(), gs.last(), 1000000 - 1).toLong()
+        val distance = galaxyMap.getDistance(gs.first(), gs.last(), 1000000).toLong()
         distance
     }
 }
@@ -46,13 +46,13 @@ data class GalaxyMap(
             .filter { it.size == 2 }
             .toSet()
 
-    fun getDistance(g1: Coord, g2: Coord, multiplier: Int = 1): Int {
+    fun getDistance(g1: Coord, g2: Coord, multiplier: Int = 2): Int {
         val minCol = minOf(g1.c, g2.c)
         val maxCol = maxOf(g1.c, g2.c)
         val minRow = minOf(g1.r, g2.r)
         val maxRow = maxOf(g1.r, g2.r)
-        return (maxCol - minCol + (minCol..maxCol).count { it in emptyColumns } * multiplier) +
-                (maxRow - minRow + (minRow..maxRow).count { it in emptyRows } * multiplier)
+        return (maxCol - minCol + (minCol..maxCol).count { it in emptyColumns } * (multiplier-1)) +
+                (maxRow - minRow + (minRow..maxRow).count { it in emptyRows } * (multiplier-1))
     }
 }
 
