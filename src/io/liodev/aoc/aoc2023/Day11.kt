@@ -41,7 +41,7 @@ data class GalaxyMap(
     val emptyColumns: List<Int>
 ) {
     val galaxyPairs: Set<Set<Coord>> =
-        galaxies.cartesianProduct(galaxies)
+        (galaxies * galaxies)
             .map { (x, y) -> setOf(x, y) }
             .filter { it.size == 2 }
             .toSet()
@@ -54,17 +54,6 @@ data class GalaxyMap(
         return (maxCol - minCol + (minCol..maxCol).count { it in emptyColumns } * multiplier) +
                 (maxRow - minRow + (minRow..maxRow).count { it in emptyRows } * multiplier)
     }
-}
-
-fun <T, S> Collection<T>.cartesianProduct(other: Iterable<S>): List<Pair<T, S>> {
-    return cartesianProduct(other) { first, second -> first to second }
-}
-
-fun <T, S, V> Collection<T>.cartesianProduct(
-    other: Iterable<S>,
-    transformer: (first: T, second: S) -> V
-): List<V> {
-    return this.flatMap { first -> other.map { second -> transformer.invoke(first, second) } }
 }
 
 fun main() {
