@@ -26,6 +26,11 @@ data class Coord(val r: Int, val c: Int) {
 
     operator fun plus(other: Coord): Coord = Coord(this.r + other.r, this.c + other.c)
 
+    fun goUp() = this + Coord(-1, 0)
+    fun goLeft() = this + Coord(0, -1)
+    fun goDown() = this + Coord(1, 0)
+    fun goRight() = this + Coord(0, 1)
+
 }
 
 fun Pair<Int, Int>.toCoord() = Coord(this)
