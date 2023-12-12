@@ -14,6 +14,15 @@ data class Coord(val r: Int, val c: Int) {
         }
     }
 
+    fun getCardinalBorder(): List<Coord> {
+        return buildList {
+            add(Coord(r, c - 1))
+            add(Coord(r, c + 1))
+            add(Coord(r-1, c))
+            add(Coord(r+1, c))
+        }
+    }
+
     override fun toString(): String {
         return "$r,$c"
     }
@@ -85,4 +94,16 @@ fun <T, S, V> Collection<T>.cartesianProduct(
     transformer: (first: T, second: S) -> V
 ): List<V> {
     return this.flatMap { first -> other.map { second -> transformer.invoke(first, second) } }
+}
+
+fun <E> List<MutableList<E>>.floodFill(at: Coord, water: E, space: E) {
+    if (!this.validIndex(at)) return
+    val queue = ArrayDeque<Coord>().apply { add(at) }
+    while (queue.isNotEmpty()) {
+        val next = queue.removeFirst()
+        if (this[next] == space) {
+            this[next] = water
+            queue.addAll(next.getBorder(1).filter { this.validIndex(it) })
+        }
+    }
 }
