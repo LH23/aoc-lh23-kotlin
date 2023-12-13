@@ -42,6 +42,7 @@ class Day13(input: String) : Day<Int> {
         patterns.map { pattern ->
             val mirrorRow = pattern.findReflectingRow()
             val mirrorCol = if (mirrorRow == -1) pattern.findReflectingCol() else -1
+            if (mirrorRow == -1 && mirrorCol == -1) error("No line of reflection in:\n $pattern")
             Pair(mirrorRow, mirrorCol)
         }.sumOf { (r, c) ->
             (if (r != -1) r else 0) * 100 + (if (c != -1) c else 0)
@@ -52,6 +53,7 @@ class Day13(input: String) : Day<Int> {
         patterns.map { pattern ->
             val mirrorRow = pattern.findReflectingRow(1)
             val mirrorCol = if (mirrorRow == -1) pattern.findReflectingCol(1) else -1
+            if (mirrorRow == -1 && mirrorCol == -1) error("No line of reflection in:\n $pattern")
             Pair(mirrorRow, mirrorCol)
         }.sumOf { (r, c) ->
             (if (r != -1) r else 0) * 100 + (if (c != -1) c else 0)
