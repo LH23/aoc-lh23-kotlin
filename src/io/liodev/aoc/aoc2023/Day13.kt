@@ -16,16 +16,12 @@ class Day13(input: String) : Day<Int> {
                 var u = i
                 var d = i + 1
                 var sm = 0
-                var reflection = true
                 while (u >= 0 && d <= lastIndex) {
                     sm += differences(this[u], this[d])
-                    if (sm > smudges) {
-                        reflection = false; break
-                    }
-                    u--
-                    d++
+                    if (sm > smudges) break
+                    u--; d++
                 }
-                if (reflection && sm == smudges) return i + 1
+                if (sm == smudges) return i + 1
             }
         }
         return -1
@@ -42,42 +38,29 @@ class Day13(input: String) : Day<Int> {
         return transpose.findReflectingRow(smudges)
     }
 
-    override fun solvePart1(): Int {
-        var cols = 0
-        var rows = 0
-        for (pattern in patterns) {
-            val row = pattern.findReflectingRow()
-            if (row != -1) {
-                rows += row; continue
-            }
-            val col = pattern.findReflectingCol()
-            if (col != -1) {
-                cols += col; continue
-            }
+    override fun solvePart1(): Int =
+        patterns.map { pattern ->
+            val mirrorRow = pattern.findReflectingRow()
+            val mirrorCol = if (mirrorRow == -1) pattern.findReflectingCol() else -1
+            Pair(mirrorRow, mirrorCol)
+        }.sumOf { (r, c) ->
+            (if (r != -1) r else 0) * 100 + (if (c != -1) c else 0)
         }
-        return cols + 100 * rows
-    }
 
-    override fun solvePart2(): Int {
-        var cols = 0
-        var rows = 0
-        for (pattern in patterns) {
-            val row = pattern.findReflectingRow(1)
-            if (row != -1) {
-                rows += row; continue
-            }
-            val col = pattern.findReflectingCol(1)
-            if (col != -1) {
-                cols += col; continue
-            }
+
+    override fun solvePart2(): Int =
+        patterns.map { pattern ->
+            val mirrorRow = pattern.findReflectingRow(1)
+            val mirrorCol = if (mirrorRow == -1) pattern.findReflectingCol(1) else -1
+            Pair(mirrorRow, mirrorCol)
+        }.sumOf { (r, c) ->
+            (if (r != -1) r else 0) * 100 + (if (c != -1) c else 0)
         }
-        return cols + 100 * rows
-    }
 }
 
 fun main() {
     val name = Day13::class.simpleName
     val testInput = readInputAsString("src/input/2023/${name}_test.txt")
     val realInput = readInputAsString("src/input/2023/${name}.txt")
-    runDay(Day13(testInput), Day13(realInput))
+    runDay(Day13(testInput), Day13(realInput), printTimings = true)
 }
