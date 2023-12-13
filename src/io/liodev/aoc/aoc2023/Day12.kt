@@ -1,7 +1,6 @@
 package io.liodev.aoc.aoc2023
 
 import io.liodev.aoc.Day
-import io.liodev.aoc.println
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 
@@ -33,7 +32,7 @@ class Day12(input: String) : Day<Long> {
         )
     }
 
-    override fun solvePart1(): Long = records.sumOf { record ->
+    override fun solvePart1() = records.sumOf { record ->
         record.calculateOptions()
     }
 
@@ -54,24 +53,26 @@ data class ConditionRecord(val part: String, val sequence: List<Int>) {
     fun calculateOptions() = validSequences(0, 0)
 
     private fun validSequences(partIndex: Int, sequenceIndex: Int): Long = when {
-        sequenceIndex == sequence.size -> if (part.drop(partIndex).none { c -> c == '#' }) 1L else 0
-        partIndex >= part.length -> 0L
+        sequenceIndex == sequence.size && part.drop(partIndex).none { it == '#' } -> 1
+        sequenceIndex == sequence.size || partIndex >= part.length -> 0
         else -> {
             if (cache[partIndex to sequenceIndex] == null) {
-                val take = if (canTake(partIndex, sequence[sequenceIndex]))
+                val usingBrokenPart = if (canTakeBrokens(partIndex, sequence[sequenceIndex]))
                     validSequences(partIndex + sequence[sequenceIndex] + 1, sequenceIndex + 1)
-                else 0L
-                val dontTake = if (part[partIndex] != '#')
+                else 0
+                val usingWorkingPart = if (part[partIndex] != '#')
                     validSequences(partIndex + 1, sequenceIndex)
-                else 0L
-                cache[partIndex to sequenceIndex] = take + dontTake
+                else 0
+                cache[partIndex to sequenceIndex] = usingBrokenPart + usingWorkingPart
+                usingBrokenPart + usingWorkingPart
+            } else {
+                cache[partIndex to sequenceIndex]!!
             }
-            cache[partIndex to sequenceIndex]!!
         }
     }
 
-    private fun canTake(i: Int, length: Int) =
-        memo[i] >= length && (i + length == part.length || part[i + length] != '#')
+    private fun canTakeBrokens(index: Int, numBrokens: Int) =
+        memo[index] >= numBrokens && (index + numBrokens == part.length || part[index + numBrokens] != '#')
 
 }
 
