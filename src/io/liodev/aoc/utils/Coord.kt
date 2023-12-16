@@ -39,7 +39,17 @@ data class Coord(val r: Int, val c: Int) {
     fun goLeft() = this + Coord(0, -1)
     fun goDown() = this + Coord(1, 0)
     fun goRight() = this + Coord(0, 1)
+    fun move(dir: Dir): Coord = when (dir) {
+        Dir.North -> this.goUp()
+        Dir.West -> this.goLeft()
+        Dir.South -> this.goDown()
+        Dir.East -> this.goRight()
+    }
 
+}
+
+enum class Dir {
+    North, West, South, East
 }
 
 fun Pair<Int, Int>.toCoord() = Coord(this)
