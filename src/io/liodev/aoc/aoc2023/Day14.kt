@@ -8,7 +8,7 @@ import io.liodev.aoc.utils.printMatrix
 // 2023 Day14
 class Day14(input: String) : Day<Int> {
 
-    override val expectedValues = listOf(136, 106517, 64, 79723)
+    override val expectedValues = listOf(136, 106517, 64, 79723, 15, 7)
 
     private val platform = input.split("\n").map { it.toList() }
 
@@ -109,6 +109,7 @@ private fun List<List<Char>>.calculateCostInPlace(): Int {
 fun main() {
     val name = Day14::class.simpleName
     val testInput = readInputAsString("src/input/2023/${name}_test.txt")
+    val testInput2 = readInputAsString("src/input/2023/${name}_test2.txt")
     val realInput = readInputAsString("src/input/2023/${name}.txt")
-    runDay(Day14(testInput), Day14(realInput), printTimings = true)
+    runDay(Day14(testInput), Day14(realInput), extraDays = listOf(Day14(testInput2)))
 }
