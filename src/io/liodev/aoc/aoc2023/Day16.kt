@@ -16,27 +16,23 @@ class Day16(input: String) : Day<Int> {
 
     private val layout = input.split("\n").map { it.toList() }
     private val visited: List<MutableList<Visited>> = List(layout.size) {
-        MutableList(layout[0].size) { Visited(0, 0, 0, 0) }
+        MutableList(layout[0].size) { Visited() }
     }
 
-    override fun solvePart1(): Int {
-        return calculateVisited(Coord(0,0) to Dir.East)
-    }
+    override fun solvePart1(): Int = calculateVisited(Coord(0, 0) to Dir.East)
 
-    override fun solvePart2() : Int {
-        var max = 0
-        for (i in layout.indices){
-            max = max.coerceAtLeast(calculateVisited(Coord(i, 0) to Dir.East))
-            max = max.coerceAtLeast(calculateVisited(Coord(i, layout.lastIndex) to Dir.West))
-            max = max.coerceAtLeast(calculateVisited(Coord(0, i) to Dir.South))
-            max = max.coerceAtLeast(calculateVisited(Coord(layout.lastIndex, i) to Dir.North))
-        }
-        return max
+    override fun solvePart2(): Int = layout.indices.maxOf {
+        listOf(
+            calculateVisited(Coord(it, 0) to Dir.East),
+            calculateVisited(Coord(it, layout.lastIndex) to Dir.West),
+            calculateVisited(Coord(0, it) to Dir.South),
+            calculateVisited(Coord(layout.lastIndex, it) to Dir.North)
+        ).max()
     }
 
     private fun calculateVisited(origin: Pair<Coord, Dir>): Int {
-        (visited.indices * visited[0].indices).forEach {(i,j) ->
-            visited[i][j] = Visited(0, 0, 0, 0)
+        (visited.indices * visited[0].indices).forEach { (i, j) ->
+            visited[i][j] = Visited()
         }
         val toVisit = ArrayDeque<Pair<Coord, Dir>>()
         toVisit.addLast(origin)
@@ -56,42 +52,54 @@ class Day16(input: String) : Day<Int> {
         return when (layout[coord]) {
             '.' -> listOf(coord.move(dir) to dir)
             '-' ->
-                if (dir in listOf(Dir.North, Dir.South)) listOf(coord.move(Dir.East) to Dir.East, coord.move(Dir.West) to Dir.West)
+                if (dir in listOf(Dir.North, Dir.South)) listOf(
+                    coord.move(Dir.East) to Dir.East,
+                    coord.move(Dir.West) to Dir.West
+                )
                 else listOf(coord.move(dir) to dir)
+
             '|' ->
-                if (dir in listOf(Dir.West, Dir.East)) listOf(coord.move(Dir.North) to Dir.North, coord.move(Dir.South) to Dir.South)
+                if (dir in listOf(Dir.West, Dir.East)) listOf(
+                    coord.move(Dir.North) to Dir.North,
+                    coord.move(Dir.South) to Dir.South
+                )
                 else listOf(coord.move(dir) to dir)
-            '/' -> when(dir) {
+
+            '/' -> when (dir) {
                 Dir.North -> listOf(coord.move(Dir.East) to Dir.East)
                 Dir.West -> listOf(coord.move(Dir.South) to Dir.South)
                 Dir.South -> listOf(coord.move(Dir.West) to Dir.West)
                 Dir.East -> listOf(coord.move(Dir.North) to Dir.North)
             }
-            '\\' -> when(dir) {
+
+            '\\' -> when (dir) {
                 Dir.North -> listOf(coord.move(Dir.West) to Dir.West)
                 Dir.West -> listOf(coord.move(Dir.North) to Dir.North)
                 Dir.South -> listOf(coord.move(Dir.East) to Dir.East)
                 Dir.East -> listOf(coord.move(Dir.South) to Dir.South)
             }
+
             else -> error("Invalid element")
         }
     }
 
-    data class Visited(val n: Int, val w: Int, val s: Int, val e: Int) {
+    data class Visited(val n: Boolean, val w: Boolean, val s: Boolean, val e: Boolean) {
+        constructor() : this(false, false, false, false)
+
         fun add(dir: Dir) = when (dir) {
-            Dir.North -> this.copy(n = n + 1)
-            Dir.West -> this.copy(w = w + 1)
-            Dir.South -> this.copy(s = s + 1)
-            Dir.East -> this.copy(e = e + 1)
+            Dir.North -> this.copy(n = true)
+            Dir.West -> this.copy(w = true)
+            Dir.South -> this.copy(s = true)
+            Dir.East -> this.copy(e = true)
         }
 
-        val visited = n > 0 || w > 0 || s > 0 || e > 0
+        val visited = n || w || s || e
 
         fun alreadyVisited(dir: Dir): Boolean = when (dir) {
-            Dir.North -> n > 0
-            Dir.West -> w > 0
-            Dir.South -> s > 0
-            Dir.East -> e > 0
+            Dir.North -> n
+            Dir.West -> w
+            Dir.South -> s
+            Dir.East -> e
         }
     }
 }
@@ -100,5 +108,5 @@ fun main() {
     val name = Day16::class.simpleName
     val testInput = readInputAsString("src/input/2023/${name}_test.txt")
     val realInput = readInputAsString("src/input/2023/${name}.txt")
-    runDay(Day16(testInput), Day16(realInput))
+    runDay(Day16(testInput), Day16(realInput), printTimings = true)
 }
