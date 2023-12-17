@@ -1,5 +1,7 @@
 package io.liodev.aoc.utils
 
+import kotlin.math.abs
+
 data class Coord(val r: Int, val c: Int) {
     constructor(pair: Pair<Int, Int>) : this(pair.first, pair.second)
 
@@ -70,6 +72,20 @@ fun <E> List<List<E>>.printMatrix() {
         println(row.joinToString("") { it.toString() })
     }
 }
+
+fun <E> List<List<E>>.printPathInMatrix(path: List<Coord>, empty: E) {
+    val visualizedResult = List(this.size) {
+        MutableList(this[0].size) { empty }
+    }
+    for (p in path){
+        visualizedResult[p] = this[p]
+    }
+    visualizedResult.printMatrix()
+}
+
+fun vDist(a: Coord, b: Coord): Int = abs(a.r - b.r)
+fun hDist(a: Coord, b: Coord): Int = abs(a.c - b.c)
+
 
 /**
  * Returns the Cartesian product of this [IntRange] with another [IntRange].
