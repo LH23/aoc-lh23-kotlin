@@ -13,22 +13,21 @@ class Day18(input: String) : Day<Long> {
     private val digPlanInstructions = input.split("\n").map { it.toInstruction() }
     private val digPlanRealInstructions = input.split("\n").map { it.toRealInstruction() }
 
-    private fun String.toInstruction(): Instruction {
-        val split = this.split(" ")
-        return Instruction(split[0][0], split[1].toInt())
-    }
-    private fun String.toRealInstruction(): Instruction {
-        val split = this.split(" ")
-        // 0 means R, 1 means D, 2 means L, and 3 means U.
-        val dir = when (split[2][7]) {
+    private fun String.toInstruction() = this.split(" ")
+        .let { (dir, meters, _) ->
+            Instruction(dir[0], meters.toInt())
+        }
+
+    private fun String.toRealInstruction() = this.split(" ")[2].let { hexa ->
+        val dir = when (hexa[7]) {
             '0' -> 'R'
             '1' -> 'D'
             '2' -> 'L'
             '3' -> 'U'
-            else -> error("Invalid")
+            else -> error("Invalid dir")
         }
-        val meters = split[2].substring(2,7).toInt(16)
-        return Instruction(dir, meters)
+        val meters = hexa.substring(2, 7).toInt(16)
+        Instruction(dir, meters)
     }
 
     data class Instruction(val dir: Char, val meters: Int)
@@ -51,9 +50,9 @@ class Day18(input: String) : Day<Long> {
             terrain.add(newPosition)
             diggerPos = newPosition
         }
-        return (abs(terrain.zipWithNext().sumOf {(x,y) ->
-            (x.c+y.c) * (x.r-y.r).toLong()
-        }) + instructions.sumOf { it.meters } ) / 2 + 1
+        return (abs(terrain.zipWithNext().sumOf { (x, y) ->
+            (x.c + y.c) * (x.r - y.r).toLong() // Trapezoid formula
+        }) + instructions.sumOf { it.meters }) / 2 + 1
     }
 }
 
