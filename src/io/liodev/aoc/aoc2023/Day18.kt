@@ -15,7 +15,7 @@ class Day18(input: String) : Day<Long> {
 
     private fun String.toInstruction(): Instruction {
         val split = this.split(" ")
-        return Instruction(split[0][0], split[1].toInt(), split[2])
+        return Instruction(split[0][0], split[1].toInt())
     }
     private fun String.toRealInstruction(): Instruction {
         val split = this.split(" ")
@@ -28,28 +28,28 @@ class Day18(input: String) : Day<Long> {
             else -> error("Invalid")
         }
         val meters = split[2].substring(2,7).toInt(16)
-        return Instruction(dir, meters, split[0]+split[1])
+        return Instruction(dir, meters)
     }
 
-    data class Instruction(val dir: Char, val meters: Int, val color: String)
+    data class Instruction(val dir: Char, val meters: Int)
 
     override fun solvePart1() = calculateArea(digPlanInstructions)
 
     override fun solvePart2() = calculateArea(digPlanRealInstructions)
 
     private fun calculateArea(instructions: List<Instruction>): Long {
-        var worker = Coord(0, 0)
-        val terrain = mutableListOf(worker)
+        var diggerPos = Coord(0, 0)
+        val terrain = mutableListOf(diggerPos)
         for (inst in instructions) {
             val newPosition = when (inst.dir) {
-                'U' -> worker.goUp(inst.meters)
-                'D' -> worker.goDown(inst.meters)
-                'L' -> worker.goLeft(inst.meters)
-                'R' -> worker.goRight(inst.meters)
+                'U' -> diggerPos.goUp(inst.meters)
+                'D' -> diggerPos.goDown(inst.meters)
+                'L' -> diggerPos.goLeft(inst.meters)
+                'R' -> diggerPos.goRight(inst.meters)
                 else -> error("Invalid dir: $inst")
             }
             terrain.add(newPosition)
-            worker = newPosition
+            diggerPos = newPosition
         }
         return (abs(terrain.zipWithNext().sumOf {(x,y) ->
             (x.c+y.c) * (x.r-y.r).toLong()
