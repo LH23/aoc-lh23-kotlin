@@ -1,11 +1,11 @@
 package io.liodev.aoc.aoc2023
 
 import io.liodev.aoc.Day
-import io.liodev.aoc.println
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.Coord
 import io.liodev.aoc.utils.get
+import io.liodev.aoc.utils.printPathInMatrix
 import io.liodev.aoc.utils.validIndex
 import java.util.PriorityQueue
 
@@ -27,39 +27,42 @@ class Day17(input: String) : Day<Int> {
         excludeDirectionIf = {
             (it.currentDir == it.parent?.currentDir && it.stepsInDir > 10) ||
             (it.currentDir != it.parent?.currentDir && it.parent?.stepsInDir!! < 4)
-        }
+        },
+        endCondition = { it.stepsInDir >= 4 }
     ).sumOf { heatLossMap[it] }
 
     private fun findOptimalPath(
         origin: Coord,
         end: Coord,
-        excludeDirectionIf: (Node) -> Boolean
+        excludeDirectionIf: (Node) -> Boolean,
+        endCondition: (Node) -> Boolean = { true },
     ): List<Coord> {
         val openPri = PriorityQueue<Node>() { a, b -> a.f - b.f }
         val openMap = HashMap<Node, Int>()
         val closedSet = HashSet<Node>()
 
-        val nodeStart = Node(origin, 1, 0, null)
+        val nodeStart = Node(origin, 1, 1, null)
         openPri.offer(nodeStart)
 
         while (openPri.isNotEmpty()) {
             val current = openPri.poll()
             closedSet.add(current)
 
-            if (current.position == end) {
+            if (current.position == end && endCondition(current)) {
                 return constructPath(current)
             }
 
             for ((i, n) in current.position.getCardinalBorder().withIndex()) {
                 if (!heatLossMap.validIndex(n) || n == current.parent?.position) continue
 
-                val node = Node(n, i, if (current.currentDir == i) current.stepsInDir + 1 else 1, current)
+                val steps = if (current.currentDir == i) current.stepsInDir + 1 else 1
+                val node = Node(n, i, steps, current)
                 node.g = current.g + heatLossMap[node.position]
                 node.h = 0 //abs(node.position.r - end.r) + abs(node.position.c - end.c)
                 node.f = node.g + node.h
 
                 if (closedSet.contains(node)) continue
-                if (openMap.getOrElse(node) {Int.MAX_VALUE} <= node.g) continue
+                if (openMap.getOrElse(node) { Int.MAX_VALUE } <= node.g) continue
                 if (excludeDirectionIf(node)) continue
 
                 openPri.offer(node)
@@ -76,6 +79,7 @@ class Day17(input: String) : Day<Int> {
             path.add(next.position)
             next = next.parent!!
         }
+        //heatLossMap.printPathInMatrix(path, 0)
         return path.reversed()
     }
 }
@@ -84,8 +88,8 @@ data class Node(val position: Coord, val currentDir: Int, val stepsInDir: Int, v
     var f = 0
     var g = 0
     var h = 0
-    override fun toString() =
-        "(${position} $currentDir $stepsInDir)"
+    override fun toString() = "(${position} $currentDir $stepsInDir)"
+
     override fun equals(other: Any?): Boolean = other is Node && this.toString() == other.toString()
     override fun hashCode(): Int = this.toString().hashCode()
 }
@@ -98,7 +102,7 @@ fun main() {
     runDay(
         Day17(testInput),
         Day17(realInput),
-        //extraDays = listOf(Day17(testInput2)),
+        extraDays = listOf(Day17(testInput2)),
         printTimings = true
     )
 }
