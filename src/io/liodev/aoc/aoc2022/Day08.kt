@@ -25,24 +25,23 @@ class Day08(input: String) : Day<Int> {
         var maxH: Int
         for (i in 1..<nli) {
             maxH = a[i][0]
-            for (j in 1..<mli) { maxH = visibleTrees.maxVisible(i, j, maxH) }
+            for (j in 1..<mli) maxH = visibleTrees.maxVisible(i, j, maxH)
             maxH = a[i][mli]
-            for (j in (1..<mli).reversed()) { maxH = visibleTrees.maxVisible(i, j, maxH) }
+            for (j in (1..<mli).reversed()) maxH = visibleTrees.maxVisible(i, j, maxH)
         }
         for (j in 1..<mli) {
             maxH = a[0][j]
-            for (i in 1..<nli) { maxH = visibleTrees.maxVisible(i, j, maxH) }
+            for (i in 1..<nli) maxH = visibleTrees.maxVisible(i, j, maxH)
             maxH = a[nli][j]
-            for (i in (1..<nli).reversed()) { maxH = visibleTrees.maxVisible(i, j, maxH) }
+            for (i in (1..<nli).reversed()) maxH = visibleTrees.maxVisible(i, j, maxH)
         }
         return visibleTrees.sumOf { it.count { isVisible -> isVisible } }
     }
 
-    private fun List<MutableList<Boolean>>.maxVisible(i: Int, j: Int, maxHeight: Int): Int {
-        var maxH = maxHeight
+    private fun List<MutableList<Boolean>>.maxVisible(i: Int, j: Int, maxH: Int): Int {
         if (treesHeightMap[i][j] > maxH) {
             this[i][j] = true
-            maxH = treesHeightMap[i][j]
+            return treesHeightMap[i][j]
         }
         return maxH
     }
