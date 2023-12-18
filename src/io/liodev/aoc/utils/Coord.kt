@@ -67,9 +67,9 @@ operator fun <E> List<List<E>>.get(coordinates: Coord): E {
     return this[coordinates.r][coordinates.c]
 }
 
-fun <E> List<List<E>>.printMatrix() {
+fun <E> List<List<E>>.printMatrix(separator: String = "") {
     this.forEach { row ->
-        println(row.joinToString("") { it.toString() })
+        println(row.joinToString(separator) { it.toString() })
     }
 }
 
