@@ -69,7 +69,6 @@ class Day19(input: String) : Day<Long> {
         val type: Char,
         val op: Char,
         val value: Int,
-        val negated: Boolean = false
     ) {
         fun valid(batch: Batch): Boolean {
             val t = when (type) {
@@ -92,10 +91,9 @@ class Day19(input: String) : Day<Long> {
             var dest = workflows["in"]!!.runRules(this)
             while (true) {
                 if (dest == "A") return x + m + a + s
-                if (dest == "R") break
+                if (dest == "R") return 0
                 dest = workflows[dest]!!.runRules(this)
             }
-            return 0
         }
     }
 
@@ -113,14 +111,14 @@ class Day19(input: String) : Day<Long> {
             .map { list ->
                 list.filter { it.value != -1 }.takeWhile { it != A.condition }
             }
-        return pathsToA.map { path ->
-            "xmas".map { it.getRangeInPath(path) }
-        }.sumOf { xmas ->
-            xmas.map { (it.last + 1 - it.first).toLong() }.reduce { a, b -> a * b }
+        return pathsToA.sumOf { path ->
+            "xmas".map { type -> rangeSize(type.getRange(path)) }.reduce { a, b -> a * b }
         }
     }
 
-    private fun Char.getRangeInPath(path: List<Condition>): IntRange {
+    private fun rangeSize(it: IntRange) = (it.last + 1 - it.first).toLong()
+
+    private fun Char.getRange(path: List<Condition>): IntRange {
         var start = 1
         var end = 4000
         for (cond in path) {
