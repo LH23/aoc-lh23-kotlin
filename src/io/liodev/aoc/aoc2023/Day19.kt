@@ -104,17 +104,12 @@ class Day19(input: String) : Day<Long> {
 
     override fun solvePart1(): Long = batches.sumOf { it.totalAccepted(workflows) }.toLong()
 
-    override fun solvePart2(): Long {
-        val tree = calculateRulesTree("in")
-        val pathsToA = getAllPaths(tree)
-            .filter { it.contains(A.condition) }
-            .map { list ->
-                list.filter { it.value != -1 }.takeWhile { it != A.condition }
-            }
-        return pathsToA.sumOf { path ->
+    override fun solvePart2() = calculateRulesTree("in")
+        .getAllPaths()
+        .filter { it.contains(A.condition) }
+        .sumOf { path ->
             "xmas".map { type -> rangeSize(type.getRange(path)) }.reduce { a, b -> a * b }
         }
-    }
 
     private fun rangeSize(it: IntRange) = (it.last + 1 - it.first).toLong()
 
@@ -130,14 +125,15 @@ class Day19(input: String) : Day<Long> {
         return start..end
     }
 
-    private fun getAllPaths(tree: ConditionTree): List<List<Condition>> {
+    private fun ConditionTree.getAllPaths(): List<List<Condition>> {
+        val tree = this
         return if (tree.valid == null && tree.invalid == null) {
             listOf(listOf(tree.condition))
         } else {
             val valid = if (tree.valid == null) listOf()
-            else getAllPaths(tree.valid).map { conditions -> listOf(tree.condition) + conditions }
+            else tree.valid.getAllPaths().map { conditions -> listOf(tree.condition) + conditions }
             val invalid = if (tree.invalid == null) listOf()
-            else getAllPaths(tree.invalid).map { conditions -> listOf(negated(tree.condition)) + conditions }
+            else tree.invalid.getAllPaths().map { conditions -> listOf(negated(tree.condition)) + conditions }
             return listOf(valid, invalid).flatten()
         }
     }
