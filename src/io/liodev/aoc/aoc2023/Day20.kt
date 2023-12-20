@@ -10,7 +10,6 @@ class Day20(input: String) : Day<Long> {
     override val expectedValues = listOf(32000000L, 825167435, -1, 225514321828633)
 
     private val modules = input.split("\n").map { it.toModule() }.associateBy { it.label }
-
     private fun String.toModule(): Module {
         val (label, destinations) = this.split(" -> ")
         return Module(
@@ -51,14 +50,13 @@ class Day20(input: String) : Day<Long> {
             pulseQueue.addLast(Pulse(label, 'H', origin))
         }
 
-        fun run(): Pair<Long, Long> {
+        fun run() {
             while (pulseQueue.isNotEmpty()) {
                 val pulse = pulseQueue.removeFirst()
                 if (cycles.isNotEmpty()) checkCycles(pulse)
                 val module = modules[pulse.label]
                 module?.receive(pulse, this)
             }
-            return low to high
         }
 
         private fun checkCycles(pulse: Pulse) {
