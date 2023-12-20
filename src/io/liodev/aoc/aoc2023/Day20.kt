@@ -1,18 +1,15 @@
 package io.liodev.aoc.aoc2023
 
 import io.liodev.aoc.Day
-import io.liodev.aoc.println
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.lcm
 
 // 2023 Day20
 class Day20(input: String) : Day<Long> {
-    //8000 low pulses and 4000 high pulses are sent. Multiplying these together gives 32000000.
-    //4250 low pulses and 2750 high pulses are sent. Multiplying these together gives 11687500.
-    override val expectedValues = listOf(11687500L, 825167435, 11687500L, 225514321828633)
+    override val expectedValues = listOf(32000000L, 825167435, -1, 225514321828633)
 
-    val modules = input.split("\n").map { it.toModule() }.associateBy { it.label }
+    private val modules = input.split("\n").map { it.toModule() }.associateBy { it.label }
 
     private fun String.toModule(): Module {
         val (label, destinations) = this.split(" -> ")
@@ -23,16 +20,18 @@ class Day20(input: String) : Day<Long> {
         )
     }
 
-    data class ModuleConfig(val modules: Map<String, Module>) {
-        var i: Long = 0
+    data class ModuleConfig(val modules: Map<String, Module>, val cycles: List<String> = listOf()) {
         private val pulseQueue = ArrayDeque<Pulse>()
         var low = 0L
         var high = 0L
 
+        // part2
+        private var i: Long = 0
+        var cyclesFound: MutableMap<String, Long> = cycles.associateWith { -1L }.toMutableMap()
+
         init {
             modules.values.filter { it.mtype == '&' }.forEach { conjunction ->
                 conjunction.conjunctionInputs = calculateInputs(conjunction.label)
-                //println("calculated conj $conjunction: ${conjunction.conjunctionInputs}")
             }
         }
 
@@ -55,16 +54,20 @@ class Day20(input: String) : Day<Long> {
         fun run(): Pair<Long, Long> {
             while (pulseQueue.isNotEmpty()) {
                 val pulse = pulseQueue.removeFirst()
-                if ((pulse.label == "rx" && pulse.ptype == 'L')) {
-                    println("FIRING ${pulse}! en $i")
-                }
-                if ((pulse.label == "bn" && pulse.ptype == 'H')) {
-                    println("FIRING ${pulse}! en $i")
-                }
+                if (cycles.isNotEmpty()) checkCycles(pulse)
                 val module = modules[pulse.label]
                 module?.receive(pulse, this)
             }
             return low to high
+        }
+
+        private fun checkCycles(pulse: Pulse) {
+            if (pulse.origin == "button") i++
+            if ((pulse.origin in cycles && pulse.ptype == 'H')) {
+                // I need to save the first one but is not the cycle yet, so I save it as negative
+                cyclesFound[pulse.origin] = if (cyclesFound[pulse.origin] == -1L) -i
+                else cyclesFound[pulse.origin]!! + i
+            }
         }
 
     }
@@ -81,7 +84,6 @@ class Day20(input: String) : Day<Long> {
                     if (pulse.ptype == 'L') moduleConfig.sendLowPulse(it, pulse.label)
                     else moduleConfig.sendHighPulse(it, pulse.label)
                 }
-
                 '%' -> {
                     if (pulse.ptype == 'H') return
                     flipFlopState = if (!flipFlopState) { // off
@@ -92,7 +94,6 @@ class Day20(input: String) : Day<Long> {
                         false
                     }
                 }
-
                 '&' -> {
                     conjunctionInputs!![pulse.origin] = pulse.ptype
                     if (conjunctionInputs!!.values.all { it == 'H' }) { // all H
@@ -111,28 +112,25 @@ class Day20(input: String) : Day<Long> {
             moduleConfig.sendLowPulse("broadcaster", "button")
             moduleConfig.run()
         }
-        println(moduleConfig.low to moduleConfig.high)
         return moduleConfig.low * moduleConfig.high
     }
 
     override fun solvePart2(): Long {
-        // NEED TO FIND THE CYCLES FOR "bn" INPUTS
-//        val moduleConfig = ModuleConfig(modules)
-//        var i = 0L
-//        while (true) {
-//            i++
-//            if (i % 1000000L == 0L) println (i)
-//            moduleConfig.i = i
-//            moduleConfig.sendLowPulse("broadcaster", "button")
-//            moduleConfig.run()
-//        }
-        return lcm(listOf(3797,3823,3881,4003))
+        val cycles = listOf("pl", "zm", "mz", "lz")
+        val moduleConfig = ModuleConfig(modules, cycles)
+        if (cycles.any { !moduleConfig.modules.contains(it) }) return -1L // ignore test case
+
+        while (moduleConfig.cyclesFound.values.any { it < 0 }) {
+            moduleConfig.sendLowPulse("broadcaster", "button")
+            moduleConfig.run()
+        }
+        return lcm(moduleConfig.cyclesFound.values.toList())
     }
 }
 
 fun main() {
     val name = Day20::class.simpleName
-    val testInput = readInputAsString("src/input/2023/${name}_test2.txt")
+    val testInput = readInputAsString("src/input/2023/${name}_test.txt")
     val realInput = readInputAsString("src/input/2023/${name}.txt")
-    runDay(Day20(testInput), Day20(realInput), skipTests = listOf(false, false, true, false))
+    runDay(Day20(testInput), Day20(realInput), printTimings = true)
 }
