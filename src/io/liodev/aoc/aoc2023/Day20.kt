@@ -5,7 +5,7 @@ import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.lcm
 
-// 2023 Day20
+// --- 2023 Day 20: Pulse Propagation ---
 class Day20(input: String) : Day<Long> {
     override val expectedValues = listOf(32000000L, 825167435, -1, 225514321828633)
 
@@ -114,7 +114,10 @@ class Day20(input: String) : Day<Long> {
     }
 
     override fun solvePart2(): Long {
-        val cycles = listOf("pl", "zm", "mz", "lz")
+        // when "&nb" activates all it's inputs it will send "rx" the required low pulse,
+        // therefore we need to detect the cycle of a high pulse for each of the inputs of "&nb"
+        val cycles = listOf("pl", "zm", "mz", "lz") // hardcoded for my input
+
         val moduleConfig = ModuleConfig(modules, cycles)
         if (cycles.any { !moduleConfig.modules.contains(it) }) return -1L // ignore test case
 
