@@ -1,6 +1,7 @@
 package io.liodev.aoc.aoc2023
 
 import io.liodev.aoc.Day
+import io.liodev.aoc.checkResult
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.Coord
@@ -9,24 +10,23 @@ import io.liodev.aoc.utils.times
 
 // --- 2023 Day 21: Step Counter ---
 class Day21(val input: String) : Day<Long> {
-    override val expectedValues = listOf(13L, 3724, 702322447568415, 620348631910321)
+    override val expectedValues = listOf(42L, 3724, 359867795768093, 620348631910321)
 
     private var garden = input.split("\n").map { it.toMutableList() }
 
     override fun solvePart1(): Long {
-        val steps = 64
         garden.parityFloodFillLimit(
             Coord((garden.indices * garden[0].indices).first() { (i, j) -> garden[i][j] == 'S' }),
-            'A', listOf('.', 'S'), steps
+            'A', listOf('.', 'S'), 64
         )
         return garden.sumOf { r -> r.count { it == 'B' }.toLong() }
     }
 
     override fun solvePart2(): Long {
-        val steps = 26501365
-
         val cache = generateCacheTable(garden.size)
+        //cache.map { (k,v) -> println("$k: $v") }
 
+        // for validation with Day21_test3.txt
 //        checkResult("s0", calculatePos(cache, garden.size, 0), 1L) // 1 + 0 + 0 + 0
 //        checkResult("s1", calculatePos(cache, garden.size, 1), 4L) // 4 + 0 + 0 + 0
 //        checkResult("s2", calculatePos(cache, garden.size, 2), 9L) // 5 + 0 + 4 + 0
@@ -39,7 +39,7 @@ class Day21(val input: String) : Day<Long> {
 //        checkResult("s9", calculatePos(cache, garden.size, 9), 100L) // 0 + 12 + 52 + 12 + 24
 //        checkResult("s10", calculatePos(cache, garden.size, 10), 121L) // 0 + (13+48) + 24 + 0 + 36
 
-        return calculatePos(cache, garden.size, steps)
+        return calculatePos(cache, garden.size, 26501365)
     }
 
     private fun generateCacheTable(n: Int): Map<Coord, List<Pair<Long, Long>>> {
@@ -56,7 +56,7 @@ class Day21(val input: String) : Day<Long> {
         )
 
         return entryPoints.associateWith { coord ->
-            (0..(n - 1) * 2).map { steps ->
+            (0..<n).map { steps ->
                 val tmpGarden = input.split("\n").map { it.toMutableList() }
                 tmpGarden.parityFloodFillLimit(coord, 'A', listOf('.', 'S'), steps)
                 (tmpGarden.sumOf { r ->
@@ -68,8 +68,14 @@ class Day21(val input: String) : Day<Long> {
 
     private fun calculatePos(cache: Map<Coord, List<Pair<Long, Long>>>, n: Int, steps: Int): Long {
         val fullSquares = steps / n
+        val position = (steps % n - 1).coerceAtLeast(0)
+        // println(position)
 
-        val position = n / 2 - 1
+        if (steps <= n / 2) {
+            val result = cache[Coord(n / 2, n / 2)]!![position + 1]
+            return if (steps % 2 == 0) result.even() else result.odd()
+        }
+
         val cornersEven = cache[Coord(0, 0)]!![position].even() +
                     cache[Coord(0, n - 1)]!![position].even() +
                     cache[Coord(n - 1, 0)]!![position].even() +
@@ -95,7 +101,7 @@ private fun Pair<Long, Long>.even() = this.second
 
 fun main() {
     val name = Day21::class.simpleName
-    val testInput = readInputAsString("src/input/2023/${name}_test3.txt")
+    val testInput = readInputAsString("src/input/2023/${name}_test.txt")
     val realInput = readInputAsString("src/input/2023/${name}.txt")
     runDay(Day21(testInput), Day21(realInput), skipTests = listOf(false, false, false, false))
 }
