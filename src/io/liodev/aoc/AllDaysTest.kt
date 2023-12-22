@@ -20,6 +20,7 @@ import io.liodev.aoc.aoc2023.Day17
 import io.liodev.aoc.aoc2023.Day18
 import io.liodev.aoc.aoc2023.Day19
 import io.liodev.aoc.aoc2023.Day20
+import io.liodev.aoc.aoc2023.Day21
 import org.junit.jupiter.api.Test
 import kotlin.reflect.KClass
 
@@ -55,6 +56,7 @@ class AllDaysTest {
     @Test fun aoc2023day18() = runTestForDay(Day18::class)
     @Test fun aoc2023day19() = runTestForDay(Day19::class)
     @Test fun aoc2023day20() = runTestForDay(Day20::class)
+    @Test fun aoc2023day21() = runTestForDay(Day21::class)
 
 
     // 2022
