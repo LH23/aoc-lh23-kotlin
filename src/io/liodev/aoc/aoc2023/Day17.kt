@@ -82,17 +82,19 @@ class Day17(input: String) : Day<Int> {
         //heatLossMap.printPathInMatrix(path, 0)
         return path.reversed()
     }
+
+    private data class Node(val position: Coord, val currentDir: Int, val stepsInDir: Int, val parent: Node?) {
+        var f = 0
+        var g = 0
+        var h = 0
+        override fun toString() = "(${position} $currentDir $stepsInDir)"
+
+        override fun equals(other: Any?): Boolean = other is Node && this.toString() == other.toString()
+        override fun hashCode(): Int = this.toString().hashCode()
+    }
 }
 
-data class Node(val position: Coord, val currentDir: Int, val stepsInDir: Int, val parent: Node?) {
-    var f = 0
-    var g = 0
-    var h = 0
-    override fun toString() = "(${position} $currentDir $stepsInDir)"
 
-    override fun equals(other: Any?): Boolean = other is Node && this.toString() == other.toString()
-    override fun hashCode(): Int = this.toString().hashCode()
-}
 
 fun main() {
     val name = Day17::class.simpleName

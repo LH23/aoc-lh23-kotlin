@@ -20,11 +20,15 @@ class Day23(input: String) : Day<Int> {
         end: Coord,
         graph: Map<Coord, List<Coord>>,
     ): Int {
-        closedSet.clear()
-        return findLongestTopo(origin, end, graph, TopologicalSort(graph).topologicalSort().toMutableList())
+        return findLongestTopo(
+            origin,
+            end,
+            graph,
+            TopologicalSort(graph).topologicalSort().toMutableList()
+        )
     }
-    private val closedSet = HashSet<Coord>()
 
+    private val closedSetRec = HashSet<Coord>()
     private fun findLongestRec(
         a: Coord,
         b: Coord,
@@ -32,17 +36,13 @@ class Day23(input: String) : Day<Int> {
     ): Int {
         return if (a == b) return 0
         else {
-            var distanceA = -1
-            closedSet.add(a)
-            for ((next,weight) in graph[a]!!) {
-                if (next in closedSet) continue
-                else {
-                    val distanceNext = findLongestRec(next, b, graph)
-                    if (distanceNext < 0) continue
-                    distanceA = distanceA.coerceAtLeast(distanceNext + weight)
-                }
+            closedSetRec.add(a)
+            var distanceA = Int.MIN_VALUE
+            for ((next, weight) in graph[a]!!) {
+                if (next in closedSetRec) continue
+                else distanceA = distanceA.coerceAtLeast(findLongestRec(next, b, graph) + weight)
             }
-            closedSet.remove(a)
+            closedSetRec.remove(a)
             distanceA
         }
     }
@@ -53,6 +53,8 @@ class Day23(input: String) : Day<Int> {
         graph: Map<Coord, List<Coord>>,
         toposort: MutableList<Coord>
     ): Int {
+        val closedSet = HashSet<Coord>()
+
         val distance: MutableMap<Coord, Pair<Int, Coord?>> =
             toposort.associateWith { Int.MIN_VALUE to null }.toMutableMap()
         distance[toposort.find { it == a }!!] = 0 to null
@@ -86,63 +88,65 @@ class Day23(input: String) : Day<Int> {
     override fun solvePart1(): Int {
         return findLongestPathSize(Coord(0, 1), Coord(maze.lastIndex, maze[0].lastIndex - 1),
             maze.constructGraph(excludeDirectionIf = { node ->
-                    (!node.position.validIndex(maze)) || when (maze[node.position]) {
-                        '#' -> true
-                        '>' -> node.position.cardinalBorderDirs[node.currentDir] != Dir.East
-                        '<' -> node.position.cardinalBorderDirs[node.currentDir] != Dir.West
-                        'v' -> node.position.cardinalBorderDirs[node.currentDir] != Dir.South
-                        '^' -> node.position.cardinalBorderDirs[node.currentDir] != Dir.North
-                        else -> false
-                    }
+                (!node.position.validIndex(maze)) || when (maze[node.position]) {
+                    '#' -> true
+                    '>' -> node.position.cardinalBorderDirs[node.currentDir] != Dir.East
+                    '<' -> node.position.cardinalBorderDirs[node.currentDir] != Dir.West
+                    'v' -> node.position.cardinalBorderDirs[node.currentDir] != Dir.South
+                    '^' -> node.position.cardinalBorderDirs[node.currentDir] != Dir.North
+                    else -> false
                 }
+            }
             )
         )
     }
 
     override fun solvePart2(): Int {
-        closedSet.clear()
         return findLongestRec(Coord(0, 1), Coord(maze.lastIndex, maze[0].lastIndex - 1),
             simplifyGraph(maze.constructGraph(excludeDirectionIf = { node ->
-                    (!node.position.validIndex(maze)) || when (maze[node.position]) {
-                        '#' -> true
-                        else -> false
-                    }
+                (!node.position.validIndex(maze)) || when (maze[node.position]) {
+                    '#' -> true
+                    else -> false
                 }
+            }
             ))
         )
     }
 
-    private fun simplifyGraph(graph: Map<Coord, List<Coord>>): Map<Coord, MutableList<Pair<Coord, Int>>> = buildMap {
-        for ((coord, edges) in graph) {
-            if (edges.size != 2) for (nextCoord in edges) {
-                var current = coord
-                var next = nextCoord
-                var weight = 1
-                while (true) {
-                    val lc = (graph[next]?.toSet() ?: emptySet()) - setOf(current)
-                    if (lc.size != 1) break
-                    current = next
-                    next = lc.single()
-                    weight++
+    private fun simplifyGraph(graph: Map<Coord, List<Coord>>): Map<Coord, MutableList<Pair<Coord, Int>>> =
+        buildMap {
+            for ((coord, edges) in graph) {
+                if (edges.size != 2) for (nextCoord in edges) {
+                    var current = coord
+                    var next = nextCoord
+                    var weight = 1
+                    while (true) {
+                        val lc = (graph[next]?.toSet() ?: emptySet()) - setOf(current)
+                        if (lc.size != 1) break
+                        current = next
+                        next = lc.single()
+                        weight++
+                    }
+                    getOrPut(coord) { ArrayList() }.add(next to weight)
                 }
-                getOrPut(coord) { ArrayList() }.add(next to weight)
             }
         }
-    }
 
-    private fun List<List<Char>>.constructGraph(excludeDirectionIf: (Node) -> Boolean) =
+    private fun List<List<Char>>.constructGraph(
+        excludeDirectionIf: (Node) -> Boolean
+    ) =
         (this.indices * this[0].indices)
             .filter { (r, c) ->
                 this[r][c] != '#'
-            }
-            .map { (r, c) -> Coord(r, c) }
+            }.map { (r, c) -> Coord(r, c) }
             .associateWith { coord ->
                 coord.getCardinalBorder().withIndex().filter { (i, n) ->
-                    val node = Node(n, i, 0, null)
+                    val node = Node(n, i)
                     !excludeDirectionIf(node)
                 }.map { it.value }
             }
 
+    private data class Node(val position: Coord, val currentDir: Int)
 }
 
 class TopologicalSort<E>(private val graph: Map<E, List<E>>) {
