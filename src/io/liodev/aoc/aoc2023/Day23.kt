@@ -20,12 +20,7 @@ class Day23(input: String) : Day<Int> {
         end: Coord,
         graph: Map<Coord, List<Coord>>,
     ): Int {
-        return findLongestTopo(
-            origin,
-            end,
-            graph,
-            TopologicalSort(graph).topologicalSort().toMutableList()
-        )
+        return findLongestTopo(origin, end, graph, topologicalSort(graph))
     }
 
     private val closedSetRec = HashSet<Coord>()
@@ -87,29 +82,30 @@ class Day23(input: String) : Day<Int> {
 
     override fun solvePart1(): Int {
         return findLongestPathSize(Coord(0, 1), Coord(maze.lastIndex, maze[0].lastIndex - 1),
-            maze.constructGraph(excludeDirectionIf = { node ->
-                (!node.position.validIndex(maze)) || when (maze[node.position]) {
-                    '#' -> true
-                    '>' -> node.position.cardinalBorderDirs[node.currentDir] != Dir.East
-                    '<' -> node.position.cardinalBorderDirs[node.currentDir] != Dir.West
-                    'v' -> node.position.cardinalBorderDirs[node.currentDir] != Dir.South
-                    '^' -> node.position.cardinalBorderDirs[node.currentDir] != Dir.North
-                    else -> false
+            maze.constructGraph(
+                excludeDirectionIf = { node ->
+                    (!node.position.validIndex(maze)) || when (maze[node.position]) {
+                        '#' -> true
+                        '>' -> node.position.cardinalBorderDirs[node.currentDir] != Dir.East
+                        '<' -> node.position.cardinalBorderDirs[node.currentDir] != Dir.West
+                        'v' -> node.position.cardinalBorderDirs[node.currentDir] != Dir.South
+                        '^' -> node.position.cardinalBorderDirs[node.currentDir] != Dir.North
+                        else -> false
+                    }
                 }
-            }
             )
         )
     }
 
     override fun solvePart2(): Int {
         return findLongestRec(Coord(0, 1), Coord(maze.lastIndex, maze[0].lastIndex - 1),
-            simplifyGraph(maze.constructGraph(excludeDirectionIf = { node ->
-                (!node.position.validIndex(maze)) || when (maze[node.position]) {
-                    '#' -> true
-                    else -> false
-                }
-            }
-            ))
+            simplifyGraph(
+                maze.constructGraph(
+                    excludeDirectionIf = { node ->
+                        !node.position.validIndex(maze) || maze[node.position] == '#'
+                    }
+                )
+            )
         )
     }
 
@@ -121,13 +117,13 @@ class Day23(input: String) : Day<Int> {
                     var next = nextCoord
                     var weight = 1
                     while (true) {
-                        val lc = (graph[next]?.toSet() ?: emptySet()) - setOf(current)
-                        if (lc.size != 1) break
+                        val nextEdge = (graph[next]?.toSet() ?: emptySet()) - setOf(current)
+                        if (nextEdge.size != 1) break
                         current = next
-                        next = lc.single()
+                        next = nextEdge.single()
                         weight++
                     }
-                    getOrPut(coord) { ArrayList() }.add(next to weight)
+                    getOrPut(coord) { mutableListOf() }.add(next to weight)
                 }
             }
         }
@@ -147,33 +143,28 @@ class Day23(input: String) : Day<Int> {
             }
 
     private data class Node(val position: Coord, val currentDir: Int)
-}
 
-class TopologicalSort<E>(private val graph: Map<E, List<E>>) {
-    private val visited = mutableSetOf<E>()
-    private val topologicalOrder = mutableListOf<E>()
-
-    fun topologicalSort(): List<E> {
+    private val visited = mutableSetOf<Coord>()
+    private val topologicalOrder = mutableListOf<Coord>()
+    private fun topologicalSort(graph: Map<Coord, List<Coord>>): MutableList<Coord> {
         for (node in graph.keys) {
             if (node !in visited) {
-                dfs(node)
+                graph.dfs(node)
             }
         }
-        return topologicalOrder.asReversed()
+        return topologicalOrder.asReversed().toMutableList()
     }
 
-    private fun dfs(node: E) {
+    private fun Map<Coord, List<Coord>>.dfs(node: Coord) {
         visited.add(node)
-        for (neighbour in graph[node] ?: emptyList()) {
+        for (neighbour in this[node] ?: emptyList()) {
             if (neighbour !in visited) {
                 dfs(neighbour)
             }
         }
         topologicalOrder.add(node)
     }
-
 }
-
 
 fun main() {
     val name = Day23::class.simpleName
