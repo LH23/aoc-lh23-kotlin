@@ -16,17 +16,18 @@ data class Coord(val r: Int, val c: Int) {
         }
     }
 
+    val cardinalBorderDirs = listOf(Dir.West, Dir.East,Dir.North,Dir.South)
     fun getCardinalBorder(): List<Coord> {
         return buildList {
-            add(Coord(r, c - 1))
-            add(Coord(r, c + 1))
-            add(Coord(r-1, c))
-            add(Coord(r+1, c))
+            add(Coord(r, c - 1)) // WEST
+            add(Coord(r, c + 1)) // EAST
+            add(Coord(r-1, c)) // NORTH
+            add(Coord(r+1, c)) // SOUTH
         }
     }
 
     override fun toString(): String {
-        return "$r,$c"
+        return "$r-$c"
     }
 
     fun validIndex(array: List<List<Char>>): Boolean {
@@ -46,6 +47,13 @@ data class Coord(val r: Int, val c: Int) {
         Dir.West -> this.goLeft(n)
         Dir.South -> this.goDown(n)
         Dir.East -> this.goRight(n)
+    }
+
+    fun moveInverse(dir: Dir, n: Int = 1): Coord = when (dir) {
+        Dir.North -> this.goDown(n)
+        Dir.West -> this.goRight(n)
+        Dir.South -> this.goUp(n)
+        Dir.East -> this.goLeft(n)
     }
 
 }
@@ -73,12 +81,12 @@ fun <E> List<List<E>>.printMatrix(separator: String = "") {
     }
 }
 
-fun <E> List<List<E>>.printPathInMatrix(path: List<Coord>, empty: E) {
-    val visualizedResult = List(this.size) {
-        MutableList(this[0].size) { empty }
+fun <E> List<List<E>>.printPathInMatrix(path: List<Coord>, empty: E?, fill: E? = null) {
+    val visualizedResult = List(this.size) {i ->
+        MutableList(this[0].size) { j -> empty ?: this[i][j] }
     }
     for (p in path){
-        visualizedResult[p] = this[p]
+        visualizedResult[p] = (fill ?: this[p])!!
     }
     visualizedResult.printMatrix()
 }
