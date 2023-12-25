@@ -1,9 +1,12 @@
 package io.liodev.aoc.aoc2023
 
+import com.microsoft.z3.BoolExpr
 import com.microsoft.z3.Context
+import com.microsoft.z3.Expr
 import com.microsoft.z3.Model
 import com.microsoft.z3.RatNum
 import com.microsoft.z3.RealExpr
+import com.microsoft.z3.Sort
 import com.microsoft.z3.Status
 import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
@@ -33,20 +36,21 @@ class Day24(input: String) : Day<Long> {
     }
 
     override fun solvePart1(): Long {
-        val pairs = (hailstones * hailstones).map { setOf(it.first, it.second) }.toSet().filter { it.size == 2 }
-        return pairs.map { it.toList()[0] to it.toList()[1] }.count { (a,b) ->
+        val pairs = (hailstones * hailstones).map { setOf(it.first, it.second) }.toSet()
+            .filter { it.size == 2 }
+        return pairs.map { it.toList()[0] to it.toList()[1] }.count { (a, b) ->
             intersects(a, b, 200000000000000L, 400000000000000L)
         }.toLong()
     }
 
     private fun intersects(a: Hailstone, b: Hailstone, start: Long, end: Long): Boolean {
-        val (ax1, ay1) = a.pos(0.0)
+        val (ax1, ay1) = a.pos.x to a.pos.y
         val (ax2, ay2) = a.pos(1.0)
         val A1 = ay2 - ay1
         val B1 = ax1 - ax2
         val C1 = A1 * ax1 + B1 * ay1
 
-        val (bx1, by1) = b.pos(0.0)
+        val (bx1, by1) = b.pos.x to b.pos.y
         val (bx2, by2) = b.pos(1.0)
         val A2 = by2 - by1
         val B2 = bx1 - bx2
@@ -60,11 +64,13 @@ class Day24(input: String) : Day<Long> {
             val y = (A1 * C2 - A2 * C1) / det
 
             if ((x < a.pos.x && a.speedNs.x > 0 ||
-                x > a.pos.x && a.speedNs.x < 0)){
+                        x > a.pos.x && a.speedNs.x < 0)
+            ) {
                 return false
             }
             if ((x < b.pos.x && b.speedNs.x > 0 ||
-                x > b.pos.x && b.speedNs.x < 0)) {
+                        x > b.pos.x && b.speedNs.x < 0)
+            ) {
                 return false
             }
             x in start.toDouble()..end.toDouble() && y in start.toDouble()..end.toDouble()
@@ -75,7 +81,7 @@ class Day24(input: String) : Day<Long> {
 
     private fun solveWithZ3Solver(): Long = with(Context()) {
         val solver = mkSolver()
-        val x =  mkRealConst("x")
+        val x = mkRealConst("x")
         val y = mkRealConst("y")
         val z = mkRealConst("z")
         val sx = mkRealConst("sx")
@@ -83,15 +89,35 @@ class Day24(input: String) : Day<Long> {
         val sz = mkRealConst("sz")
 
         hailstones.take(3).forEachIndexed { i, hailstone ->
-            val t = mkRealConst("t$i")
-            solver.add(mkEq(mkAdd(x, mkMul(sx, t)), mkAdd(mkReal(hailstone.pos.x), mkMul(mkReal(hailstone.speedNs.x), t))))
-            solver.add(mkEq(mkAdd(y, mkMul(sy, t)), mkAdd(mkReal(hailstone.pos.y), mkMul(mkReal(hailstone.speedNs.y), t))))
-            solver.add(mkEq(mkAdd(z, mkMul(sz, t)), mkAdd(mkReal(hailstone.pos.z), mkMul(mkReal(hailstone.speedNs.z), t))))
+            val ti = mkRealConst("t$i")
+            // x + sx * ti = hx + hsx * ti
+            solver.add(
+                mkEq(
+                    mkAdd(x, mkMul(sx, ti)),
+                    mkAdd(mkReal(hailstone.pos.x), mkMul(mkReal(hailstone.speedNs.x), ti))
+                )
+            )
+            // y + sy * ti = hy + hsy * ti
+            solver.add(
+                mkEq(
+                    mkAdd(y, mkMul(sy, ti)),
+                    mkAdd(mkReal(hailstone.pos.y), mkMul(mkReal(hailstone.speedNs.y), ti))
+                )
+            )
+            // z + sz * tii = hz + hsz * ti
+            solver.add(
+                mkEq(
+                    mkAdd(z, mkMul(sz, ti)),
+                    mkAdd(mkReal(hailstone.pos.z), mkMul(mkReal(hailstone.speedNs.z), ti))
+                )
+            )
+            // ti >= 0
+            solver.add(mkGe(ti, mkReal(0)))
         }
 
         return if (solver.check() == Status.SATISFIABLE) {
             solver.model[x] + solver.model[y] + solver.model[z]
-        } else 0L
+        } else -1L
     }
 
     private operator fun Model.get(x: RealExpr?): Long {
