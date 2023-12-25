@@ -21,15 +21,14 @@ class Day25(input: String) : Day<Int> {
 
     override fun solvePart1(): Int {
         val pairsToRemove = getVisitedEdgesCount(graph)
-            .toList()
-            .sortedByDescending { it.second }
+            .asSequence()
+            .sortedByDescending { it.value }
             .take(3)
-            .map { it.first }
+            .map { it.key }
         pairsToRemove.forEach { (u, v) ->
             graph[u]!!.remove(v)
             graph[v]!!.remove(u)
         }
-
         val visited = visitComponentOf(graph.keys.first(), graph)
         return visited.size * (graph.keys.size - visited.size)
     }
@@ -37,9 +36,11 @@ class Day25(input: String) : Day<Int> {
     private fun constructGraph(connections: List<Connections>): MutableMap<Int, MutableList<Int>> =
         buildMap<Int, MutableList<Int>> {
             connections.forEach { conn ->
-                this.getOrPut(conn.component.hashCode()) { mutableListOf() }.addAll(conn.connections.map { it.hashCode() })
+                this.getOrPut(conn.component.hashCode()) { mutableListOf() }
+                    .addAll(conn.connections.map { it.hashCode() })
                 conn.connections.forEach { comp ->
-                    this.getOrPut(comp.hashCode()) { mutableListOf() }.add(conn.component.hashCode())
+                    this.getOrPut(comp.hashCode()) { mutableListOf() }
+                        .add(conn.component.hashCode())
                 }
             }
         }.toMutableMap()
@@ -59,13 +60,9 @@ class Day25(input: String) : Day<Int> {
     }
 
     private val paths = mutableMapOf<Pair<Int, Int>, List<Int>>()
-    private fun calculatePath(
-        a: Int,
-        b: Int,
-        graph: Map<Int, MutableList<Int>>
-    ): List<Int> {
-        if (paths[a to b] != null) paths[a to b]
-        else if (paths[b to a] != null) paths[b to a]!!.reversed()
+    private fun calculatePath(a: Int, b: Int, graph: Map<Int, MutableList<Int>>) =
+        if (paths[a to b] != null) paths[a to b]!!
+        else if (paths[b to a] != null) paths[b to a]!!
         else {
             val queue = ArrayDeque<Pair<Int, List<Int>>>()
             queue.add(a to listOf(a))
@@ -74,10 +71,10 @@ class Day25(input: String) : Day<Int> {
                 val (e, path) = queue.removeFirst()
                 visited.add(e)
                 paths[a to e] = path
-                paths[e to a] = path.reversed()
+                paths[e to a] = path
                 if (b in graph[e]!!) {
                     paths[a to b] = path + listOf(b)
-                    paths[b to a] = (path + listOf(b)).reversed()
+                    paths[b to a] = path + listOf(b)
                     break
                 } else {
                     graph[e]!!.filter { it !in visited }.forEach {
@@ -85,15 +82,10 @@ class Day25(input: String) : Day<Int> {
                     }
                 }
             }
-            return paths[a to b]!!
+            paths[a to b]!!
         }
-        return emptyList()
-    }
 
-    private fun visitComponentOf(
-        label: Int,
-        graph: MutableMap<Int, MutableList<Int>>
-    ): Set<Int> {
+    private fun visitComponentOf(label: Int, graph: MutableMap<Int, MutableList<Int>>): Set<Int> {
         val queue = ArrayDeque<Int>()
         queue.add(label)
         val visited = mutableSetOf<Int>()
