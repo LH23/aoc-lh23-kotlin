@@ -20,11 +20,12 @@ class Day25(input: String) : Day<Int> {
     }
 
     override fun solvePart1(): Int {
-        var visited: Set<Int>
+        var visited: Set<String>
         do {
             getVisitedEdgesCount(graph)
                 .asSequence()
                 .maxBy { it.value }.key.let { (u, v) ->
+                    println("Removing $u-$v")
                     graph[u]!!.remove(v)
                     graph[v]!!.remove(u)
                 }
@@ -33,23 +34,21 @@ class Day25(input: String) : Day<Int> {
         return visited.size * (graph.keys.size - visited.size)
     }
 
-    private fun constructGraph(connections: List<Connections>): MutableMap<Int, MutableList<Int>> =
-        buildMap<Int, MutableList<Int>> {
+    private fun constructGraph(connections: List<Connections>) =
+        buildMap<String, MutableList<String>> {
             connections.forEach { conn ->
-                this.getOrPut(conn.component.hashCode()) { mutableListOf() }
-                    .addAll(conn.connections.map { it.hashCode() })
+                this.getOrPut(conn.component) { mutableListOf() }.addAll(conn.connections)
                 conn.connections.forEach { comp ->
-                    this.getOrPut(comp.hashCode()) { mutableListOf() }
-                        .add(conn.component.hashCode())
+                    this.getOrPut(comp) { mutableListOf() }.add(conn.component)
                 }
             }
         }.toMutableMap()
 
-    private fun getVisitedEdgesCount(graph: MutableMap<Int, MutableList<Int>>): MutableMap<Pair<Int, Int>, Int> {
+    private fun getVisitedEdgesCount(graph: MutableMap<String, MutableList<String>>): MutableMap<Pair<String, String>, Int> {
         paths.clear()
-        val visitedEdgesCount = mutableMapOf<Pair<Int, Int>, Int>()
+        val visitedEdgesCount = mutableMapOf<Pair<String, String>, Int>()
         val v = graph.keys
-        (v * v).filter { (a, b) -> a != b }.toSet().takeRandom(20) { (a, b) ->
+        (v * v).asSequence().filter { (a, b) -> a != b }.takeRandom(10) { (a, b) ->
             for ((v1, v2) in calculatePath(a, b, graph).zipWithNext()) {
                 if (v1 < v2)
                     visitedEdgesCount[v1 to v2] = visitedEdgesCount.getOrPut(v1 to v2) { 1 } + 1
@@ -60,14 +59,14 @@ class Day25(input: String) : Day<Int> {
         return visitedEdgesCount
     }
 
-    private val paths = mutableMapOf<Pair<Int, Int>, List<Int>>()
-    private fun calculatePath(a: Int, b: Int, graph: Map<Int, MutableList<Int>>) =
+    private val paths = mutableMapOf<Pair<String, String>, List<String>>()
+    private fun calculatePath(a: String, b: String, graph: Map<String, MutableList<String>>) =
         if (paths[a to b] != null) paths[a to b]!!
         else if (paths[b to a] != null) paths[b to a]!!.reversed()
         else {
-            val queue = ArrayDeque<Pair<Int, List<Int>>>()
+            val queue = ArrayDeque<Pair<String, List<String>>>()
             queue.add(a to listOf(a))
-            val visited = mutableSetOf<Int>()
+            val visited = mutableSetOf<String>()
             while (queue.isNotEmpty()) {
                 val (e, path) = queue.removeFirst()
                 visited.add(e)
@@ -75,8 +74,7 @@ class Day25(input: String) : Day<Int> {
                 if (b in graph[e]!!) {
                     paths[a to b] = path + listOf(b)
                     break
-                    // TODO make this work!
-                } else if(paths[e to b] != null) {
+                } else if (paths[e to b] != null) {
                     paths[a to b] = path + (paths[e to b]!!).drop(1)
                     break
                 } else {
@@ -89,10 +87,10 @@ class Day25(input: String) : Day<Int> {
         }
 
 
-    private fun visitComponentOf(label: Int, graph: MutableMap<Int, MutableList<Int>>): Set<Int> {
-        val queue = ArrayDeque<Int>()
+    private fun visitComponentOf(label: String, graph: MutableMap<String, MutableList<String>>): Set<String> {
+        val queue = ArrayDeque<String>()
         queue.add(label)
-        val visited = mutableSetOf<Int>()
+        val visited = mutableSetOf<String>()
         while (queue.isNotEmpty()) {
             val e = queue.removeFirst()
             visited.add(e)
@@ -104,8 +102,8 @@ class Day25(input: String) : Day<Int> {
     override fun solvePart2() = 12_25_2023 // MERRY CHRISTMAS!!
 }
 
-private fun <E> Set<E>.takeRandom(n: Int, function: (E) -> Unit) {
-    return repeat(n) { function(this.random()) }
+private fun <E> Sequence<E>.takeRandom(n: Int, function: (E) -> Unit) {
+    return repeat(n) { function(this.shuffled().first()) }
 }
 
 fun main() {
