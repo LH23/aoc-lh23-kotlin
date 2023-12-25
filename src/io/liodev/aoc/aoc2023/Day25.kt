@@ -25,7 +25,6 @@ class Day25(input: String) : Day<Int> {
             getVisitedEdgesCount(graph)
                 .asSequence()
                 .maxBy { it.value }.key.let { (u, v) ->
-                    println("Removing $u-$v")
                     graph[u]!!.remove(v)
                     graph[v]!!.remove(u)
                 }
@@ -48,7 +47,7 @@ class Day25(input: String) : Day<Int> {
         paths.clear()
         val visitedEdgesCount = mutableMapOf<Pair<String, String>, Int>()
         val v = graph.keys
-        (v * v).asSequence().filter { (a, b) -> a != b }.takeRandom(10) { (a, b) ->
+        (v * v).asSequence().filter { (a, b) -> a != b }.takeRandom(20) { (a, b) ->
             for ((v1, v2) in calculatePath(a, b, graph).zipWithNext()) {
                 if (v1 < v2)
                     visitedEdgesCount[v1 to v2] = visitedEdgesCount.getOrPut(v1 to v2) { 1 } + 1
