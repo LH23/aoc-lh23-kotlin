@@ -30,6 +30,7 @@ class Day25(input: String) : Day<Int> {
                 }
             visited = visitComponentOf(graph.keys.first(), graph)
         } while (visited.size == graph.keys.size)
+        // STOCHASTIC RESULT, IT CAN FAIL (SPECIALLY IN TEST INPUT)
         return visited.size * (graph.keys.size - visited.size)
     }
 
@@ -49,10 +50,8 @@ class Day25(input: String) : Day<Int> {
         val v = graph.keys
         (v * v).asSequence().filter { (a, b) -> a != b }.takeRandom(20) { (a, b) ->
             for ((v1, v2) in calculatePath(a, b, graph).zipWithNext()) {
-                if (v1 < v2)
-                    visitedEdgesCount[v1 to v2] = visitedEdgesCount.getOrPut(v1 to v2) { 1 } + 1
-                else
-                    visitedEdgesCount[v2 to v1] = visitedEdgesCount.getOrPut(v2 to v1) { 1 } + 1
+                val ordPair = if (v1 < v2) v1 to v2 else v2 to v1
+                visitedEdgesCount[ordPair] = visitedEdgesCount.getOrPut(ordPair) { 1 } + 1
             }
         }
         return visitedEdgesCount
