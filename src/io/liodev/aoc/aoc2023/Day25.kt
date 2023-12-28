@@ -9,46 +9,79 @@ import io.liodev.aoc.utils.times
 class Day25(input: String) : Day<Int> {
     override val expectedValues = listOf(54, 562772, 12_25_2023, 12_25_2023)
 
-    private val graph = constructGraph(input.split("\n").map { it.toConnections() })
+    private val graph = constructGraph(input.split("\n"))
 
-    data class Connections(val component: String, val connections: List<String>)
-
-    private fun String.toConnections(): Connections {
-        val label = this.substringBefore(':')
-        val connections = this.substringAfter(": ").split(' ')
-        return Connections(label, connections)
-    }
-
-    override fun solvePart1(): Int {
-        var visited: Set<String>
-        do {
-            getVisitedEdgesCount(graph)
-                .asSequence()
-                .maxBy { it.value }.key.let { (u, v) ->
-                    graph[u]!!.remove(v)
-                    graph[v]!!.remove(u)
-                }
-            visited = visitComponentOf(graph.keys.first(), graph)
-        } while (visited.size == graph.keys.size)
-        // STOCHASTIC RESULT, IT CAN FAIL (SPECIALLY IN TEST INPUT)
-        return visited.size * (graph.keys.size - visited.size)
-    }
-
-    private fun constructGraph(connections: List<Connections>) =
+    private fun constructGraph(lines: List<String>) =
         buildMap<String, MutableList<String>> {
-            connections.forEach { conn ->
-                this.getOrPut(conn.component) { mutableListOf() }.addAll(conn.connections)
-                conn.connections.forEach { comp ->
-                    this.getOrPut(comp) { mutableListOf() }.add(conn.component)
+            lines.forEach {
+                val label = it.substringBefore(':')
+                val connections = it.substringAfter(": ").split(' ')
+
+                this.getOrPut(label) { mutableListOf() }.addAll(connections)
+                connections.forEach { comp ->
+                    this.getOrPut(comp) { mutableListOf() }.add(label)
                 }
             }
         }.toMutableMap()
+
+    override fun solvePart1(): Int {
+        var visited: Set<String>
+
+        while (true) {
+            val cut = mutableListOf<Pair<String, String>>()
+
+            repeat(2) { cut += removeMostVisitedEdge(graph) }
+            do {
+                cut += removeMostVisitedEdge(graph)
+                visited = visitComponentOf(graph.keys.first(), graph)
+            } while (visited.size == graph.keys.size)
+
+            minimizeCut(cut, graph)
+
+            if (cut.size == 3) break
+            else cut.forEach { (u, v) ->
+                graph[u]!!.add(v)
+                graph[v]!!.add(u)
+            }
+        }
+
+        // STOCHASTIC RESULT, THERE IS AN INFINITESIMAL POSSIBILITY OF FAILURE
+        return visited.size * (graph.keys.size - visited.size)
+    }
+
+    private fun minimizeCut(
+        cut: MutableList<Pair<String, String>>,
+        graph: MutableMap<String, MutableList<String>>
+    ) {
+        cut.dropLast(1).forEach { (u, v) ->
+            graph[u]!!.add(v)
+            graph[v]!!.add(u)
+            if (visitComponentOf(graph.keys.first(), graph).size == graph.keys.size) {
+                graph[u]!!.remove(v)
+                graph[v]!!.remove(u)
+            } else {
+                cut.remove(u to v)
+            }
+        }
+    }
+
+    private fun removeMostVisitedEdge(
+        g: MutableMap<String, MutableList<String>>
+    ): Pair<String, String> {
+        getVisitedEdgesCount(g)
+            .asSequence()
+            .maxBy { it.value }.key.let { (u, v) ->
+                g[u]!!.remove(v)
+                g[v]!!.remove(u)
+                return u to v
+            }
+    }
 
     private fun getVisitedEdgesCount(graph: MutableMap<String, MutableList<String>>): MutableMap<Pair<String, String>, Int> {
         paths.clear()
         val visitedEdgesCount = mutableMapOf<Pair<String, String>, Int>()
         val v = graph.keys
-        (v * v).asSequence().filter { (a, b) -> a != b }.takeRandom(20) { (a, b) ->
+        (v * v).asSequence().filter { (a, b) -> a != b }.takeRandom(10) { (a, b) ->
             for ((v1, v2) in calculatePath(a, b, graph).zipWithNext()) {
                 val ordPair = if (v1 < v2) v1 to v2 else v2 to v1
                 visitedEdgesCount[ordPair] = visitedEdgesCount.getOrPut(ordPair) { 1 } + 1
@@ -81,11 +114,14 @@ class Day25(input: String) : Day<Int> {
                     }
                 }
             }
-            paths[a to b]!!
+            paths[a to b] ?: listOf()
         }
 
 
-    private fun visitComponentOf(label: String, graph: MutableMap<String, MutableList<String>>): Set<String> {
+    private fun visitComponentOf(
+        label: String,
+        graph: MutableMap<String, MutableList<String>>
+    ): Set<String> {
         val queue = ArrayDeque<String>()
         queue.add(label)
         val visited = mutableSetOf<String>()
