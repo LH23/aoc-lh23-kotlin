@@ -7,8 +7,8 @@ import io.liodev.aoc.utils.Coord
 import io.liodev.aoc.utils.Dir
 import io.liodev.aoc.utils.parseDir
 import io.liodev.aoc.utils.printMatrix
-import jdk.vm.ci.code.CodeUtil.isEven
 import kotlin.math.abs
+import kotlin.math.sign
 
 // --- Day 9: Rope Bridge ---
 class Day09(
@@ -53,18 +53,10 @@ class Day09(
     private fun newTailPosition(
         h: Coord,
         t: Coord,
-    ): Coord =
-        if (areSeparated(h, t)) {
-            val distR = abs(h.r - t.r)
-            val distC = abs(h.c - t.c)
-            when {
-                isEven(distR) && isEven(distC) -> Coord((h.r + t.r) / 2, (h.c + t.c) / 2)
-                isEven(distC) -> Coord(h.r, (h.c + t.c) / 2)
-                else -> Coord((h.r + t.r) / 2, h.c)
-            }
-        } else {
-            t
-        }
+    ) = when {
+        areSeparated(h, t) -> t + Coord((h.r - t.r).sign, (h.c - t.c).sign)
+        else -> t
+    }
 
     private fun areSeparated(
         h: Coord,
@@ -97,7 +89,8 @@ class Day09(
 
 fun main() {
     val name = Day09::class.simpleName
-    val testInput = readInputAsString("src/input/2022/${name}_test.txt")
-    val realInput = readInputAsString("src/input/2022/$name.txt")
-    runDay(Day09(testInput), Day09(realInput))
+    val year = 2022
+    val testInput = readInputAsString("src/input/$year/${name}_test.txt")
+    val realInput = readInputAsString("src/input/$year/$name.txt")
+    runDay(Day09(testInput), Day09(realInput), year)
 }
