@@ -101,7 +101,8 @@ private fun Pair<Long, Long>.even() = this.second
 
 fun main() {
     val name = Day21::class.simpleName
-    val testInput = readInputAsString("src/input/2023/${name}_test.txt")
-    val realInput = readInputAsString("src/input/2023/${name}.txt")
-    runDay(Day21(testInput), Day21(realInput), skipTests = listOf(false, false, false, false))
+    val year = 2023
+    val testInput = readInputAsString("src/input/$year/${name}_test.txt")
+    val realInput = readInputAsString("src/input/$year/${name}.txt")
+    runDay(Day21(testInput), Day21(realInput), year, skipTests = listOf(false, false, false, false))
 }

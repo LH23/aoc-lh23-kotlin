@@ -108,8 +108,9 @@ private fun List<List<Char>>.calculateCostInPlace(): Int {
 
 fun main() {
     val name = Day14::class.simpleName
-    val testInput = readInputAsString("src/input/2023/${name}_test.txt")
-    val testInput2 = readInputAsString("src/input/2023/${name}_test2.txt")
-    val realInput = readInputAsString("src/input/2023/${name}.txt")
-    runDay(Day14(testInput), Day14(realInput), extraDays = listOf(Day14(testInput2)))
+    val year = 2023
+    val testInput = readInputAsString("src/input/$year/${name}_test.txt")
+    val testInput2 = readInputAsString("src/input/$year/${name}_test2.txt")
+    val realInput = readInputAsString("src/input/$year/${name}.txt")
+    runDay(Day14(testInput), Day14(realInput), year, extraDays = listOf(Day14(testInput2)))
 }

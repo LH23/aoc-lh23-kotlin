@@ -78,7 +78,8 @@ data class ConditionRecord(val part: String, val sequence: List<Int>) {
 
 fun main() {
     val name = Day12::class.simpleName
-    val testInput = readInputAsString("src/input/2023/${name}_test.txt")
-    val realInput = readInputAsString("src/input/2023/${name}.txt")
-    runDay(Day12(testInput), Day12(realInput), printTimings = true)
+    val year = 2023
+    val testInput = readInputAsString("src/input/$year/${name}_test.txt")
+    val realInput = readInputAsString("src/input/$year/${name}.txt")
+    runDay(Day12(testInput), Day12(realInput), year, printTimings = true)
 }

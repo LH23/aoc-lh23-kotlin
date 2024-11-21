@@ -142,7 +142,8 @@ private fun <E> Sequence<E>.takeRandom(n: Int, function: (E) -> Unit) {
 
 fun main() {
     val name = Day25::class.simpleName
-    val testInput = readInputAsString("src/input/2023/${name}_test.txt")
-    val realInput = readInputAsString("src/input/2023/${name}.txt")
-    runDay(Day25(testInput), Day25(realInput), printTimings = true)
+    val year = 2023
+    val testInput = readInputAsString("src/input/$year/${name}_test.txt")
+    val realInput = readInputAsString("src/input/$year/${name}.txt")
+    runDay(Day25(testInput), Day25(realInput), year, printTimings = true)
 }

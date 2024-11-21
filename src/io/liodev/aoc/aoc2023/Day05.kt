@@ -131,7 +131,8 @@ class Day05(val input: String) : Day<Long> {
 
 fun main() {
     val name = Day05::class.simpleName
-    val testInput = readInputAsString("src/input/2023/${name}_test.txt")
-    val realInput = readInputAsString("src/input/2023/${name}.txt")
-    runDay(Day05(testInput), Day05(realInput), printTimings = true)
+    val year = 2023
+    val testInput = readInputAsString("src/input/$year/${name}_test.txt")
+    val realInput = readInputAsString("src/input/$year/${name}.txt")
+    runDay(Day05(testInput), Day05(realInput), year, printTimings = true)
 }

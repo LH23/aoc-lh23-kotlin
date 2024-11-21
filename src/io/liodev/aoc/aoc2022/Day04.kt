@@ -45,7 +45,8 @@ infix fun IntRange.overlaps(other: IntRange) = this.first <= other.last && other
 
 fun main() {
     val name = Day04::class.simpleName
-    val testInput = readInputAsString("src/input/2022/${name}_test.txt")
-    val realInput = readInputAsString("src/input/2022/$name.txt")
-    runDay(Day04(testInput), Day04(realInput))
+    val year = 2022
+    val testInput = readInputAsString("src/input/$year/${name}_test.txt")
+    val realInput = readInputAsString("src/input/$year/$name.txt")
+    runDay(Day04(testInput), Day04(realInput), year)
 }

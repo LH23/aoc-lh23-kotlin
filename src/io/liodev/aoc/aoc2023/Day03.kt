@@ -54,7 +54,8 @@ class Day03(input: String) : Day<Int> {
 
 fun main() {
     val name = Day03::class.simpleName
-    val testInput = readInputAsString("src/input/2023/${name}_test.txt")
-    val realInput = readInputAsString("src/input/2023/${name}.txt")
-    runDay(Day03(testInput), Day03(realInput))
+    val year = 2023
+    val testInput = readInputAsString("src/input/$year/${name}_test.txt")
+    val realInput = readInputAsString("src/input/$year/${name}.txt")
+    runDay(Day03(testInput), Day03(realInput), year)
 }

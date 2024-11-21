@@ -112,7 +112,8 @@ infix fun IntRange.overlaps(other: IntRange) =
 
 fun main() {
     val name = Day22::class.simpleName
-    val testInput = readInputAsString("src/input/2023/${name}_test.txt")
-    val realInput = readInputAsString("src/input/2023/${name}.txt")
-    runDay(Day22(testInput), Day22(realInput), printTimings = true)
+    val year = 2023
+    val testInput = readInputAsString("src/input/$year/${name}_test.txt")
+    val realInput = readInputAsString("src/input/$year/${name}.txt")
+    runDay(Day22(testInput), Day22(realInput), year, printTimings = true)
 }

@@ -38,7 +38,7 @@ class AllDaysTest {
         val realInput = readInputAsString("src/input/$year/$name.txt")
         val testDay = kDay.constructors.first().call(testInput)
         val realDay = kDay.constructors.first().call(realInput)
-        runDay(testDay, realDay)
+        runDay(testDay, realDay, year = year)
     }
 
     // 2023
@@ -141,4 +141,7 @@ class AllDaysTest {
 
     @Test
     fun aoc2022day08() = runTestForDay(io.liodev.aoc.aoc2022.Day08::class, 2022)
+
+    @Test
+    fun aoc2022day09() = runTestForDay(io.liodev.aoc.aoc2022.Day09::class, 2022)
 }
