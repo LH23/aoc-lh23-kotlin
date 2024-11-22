@@ -29,38 +29,39 @@ class Day10(
 
     override val expectedValues = listOf(13140, 13720, 0, 0)
 
-    private val program =
-        input.split("\n").flatMap {
-            when (it) {
-                "noop" -> listOf(0)
-                else -> listOf(0, it.substringAfter(' ').toInt())
+    private val regXbyCycle =
+        input
+            .split("\n")
+            .flatMap {
+                when (it) {
+                    "noop" -> listOf(0)
+                    else -> listOf(0, it.substringAfter(' ').toInt())
+                }
+            }.let {
+                it.fold(listOf(1)) { acc, x ->
+                    acc + (acc.last() + x)
+                }
             }
-        }
 
     override fun solvePart1(): Int {
-        var regX = 1
         var signal = 0
-        for (i in 1..<program.size) {
+        for (i in 1..<regXbyCycle.size) {
             if ((i + 20) % 40 == 0) {
-                //println("i: $i, regX: $regX")
-                signal += i * regX
+                signal += i * regXbyCycle[i - 1]
             }
-            regX += program[i - 1]
         }
         return signal
     }
 
     override fun solvePart2(): Int {
         val crt = List(6) { MutableList(40) { '.' } }
-        var regX = 1
-        for (i in 1..<program.size) {
-            if (((i - 1) % 40) in regX - 1..regX + 1) {
-                crt[(i - 1) / 40][(i - 1) % 40] = '#'
+        for (i in 0..<regXbyCycle.size - 1) {
+            if ((i % 40) in regXbyCycle[i] - 1..regXbyCycle[i] + 1) {
+                crt[(i / 40)][(i % 40)] = '#'
             }
-            regX += program[i - 1]
         }
-        printCrt(crt)
-        val expected = if (program[1] == 15) part2TestExpected else part2RealExpected
+        //printCrt(crt)
+        val expected = if (regXbyCycle[2] == 16) part2TestExpected else part2RealExpected
         return crtDiff(crt.map { it.joinToString("") }, expected)
     }
 
