@@ -17,14 +17,14 @@ class Day17(
     private val heatLossMap = input.split("\n").map { row -> row.map { it.digitToInt() } }
 
     override fun solvePart1() =
-        findOptimalPath(
+        findOptimalPathAStar(
             Coord(0, 0),
             Coord(heatLossMap.lastIndex, heatLossMap[0].lastIndex),
             excludeDirectionIf = { it.currentDir == it.parent?.currentDir && it.stepsInDir > 3 },
         ).sumOf { heatLossMap[it] }
 
     override fun solvePart2() =
-        findOptimalPath(
+        findOptimalPathAStar(
             Coord(0, 0),
             Coord(heatLossMap.lastIndex, heatLossMap[0].lastIndex),
             excludeDirectionIf = {
@@ -34,7 +34,8 @@ class Day17(
             endCondition = { it.stepsInDir >= 4 },
         ).sumOf { heatLossMap[it] }
 
-    private fun findOptimalPath(
+    // use a modified A* algorithm to find the optimal path
+    private fun findOptimalPathAStar(
         origin: Coord,
         end: Coord,
         excludeDirectionIf: (Node) -> Boolean,
