@@ -8,7 +8,7 @@ import io.liodev.aoc.runDay
 class Day11(
     input: String,
 ) : Day<Long> {
-    override val expectedValues = listOf(10605L, 56350, 2713310158L, 13954061248)
+    override val expectedValues = listOf(10605L, 56350, 2713310158, 13954061248)
 
     private val monkeys = input.split("\n\n").map { Monkey.fromString(it) }
     private val lcm = monkeys.map { it.divisible }.reduce { acc, i -> acc * i }
@@ -29,7 +29,7 @@ class Day11(
                 activity[i] += monkeysItems[i].size
                 while (monkeysItems[i].isNotEmpty()) {
                     val item = monkeysItems[i].removeFirst()
-                    val worryLevel = evaluate(monkey.op, item % lcm) / reduceWorryLevelBy
+                    val worryLevel = monkey.inspect(item % lcm) / reduceWorryLevelBy
 
                     val destination =
                         if (worryLevel % monkey.divisible == 0L) monkey.ifTrue else monkey.ifFalse
@@ -40,23 +40,9 @@ class Day11(
         return activity.sortedDescending().take(2).let { it[0].toLong() * it[1] }
     }
 
-    private fun evaluate(
-        operation: String,
-        old: Long,
-    ): Long {
-        val (s0, op, s1) = operation.split(' ').map { it.trim() }
-        val n1 = if (s0 == "old") old else s0.toLong()
-        val n2 = if (s1 == "old") old else s1.toLong()
-        return when (op) {
-            "+" -> (n1 + n2)
-            "*" -> n1 * n2
-            else -> throw IllegalArgumentException("Invalid op: $op")
-        }
-    }
-
     data class Monkey(
         val items: List<Long>,
-        val op: String,
+        val inspect: (Long) -> Long,
         val divisible: Long,
         val ifTrue: Int,
         val ifFalse: Int,
@@ -66,7 +52,18 @@ class Day11(
                 monkeyString.lines().let {
                     Monkey(
                         it[1].substringAfter(": ").split(", ").map { item -> item.toLong() },
-                        it[2].substringAfter("new = "),
+                        it[2].substringAfter("new = ").let {
+                            { old: Long ->
+                                val (s1, op, s2) = it.split(' ')
+                                val n1 = if (s1 == "old") old else s1.toLong()
+                                val n2 = if (s2 == "old") old else s2.toLong()
+                                when (op) {
+                                    "+" -> n1 + n2
+                                    "*" -> n1 * n2
+                                    else -> throw IllegalArgumentException("Invalid op: $op")
+                                }
+                            }
+                        },
                         it[3].substringAfter("by ").toLong(),
                         it[4].substringAfter("monkey ").toInt(),
                         it[5].substringAfter("monkey ").toInt(),
