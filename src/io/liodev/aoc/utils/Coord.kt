@@ -30,7 +30,7 @@ data class Coord(
 
     override fun toString(): String = "$r-$c"
 
-    fun validIndex(array: List<List<Char>>): Boolean = validIndex(array.size, array[0].size)
+    fun validIndex(array: List<List<Char>>): Boolean = validIndex(array[0].size, array.size)
 
     private fun validIndex(
         w: Int,

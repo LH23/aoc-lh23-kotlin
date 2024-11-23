@@ -1,6 +1,10 @@
 package io.liodev.aoc
 
-// TEMPLATE
+import io.liodev.aoc.Day
+import io.liodev.aoc.readInputAsString
+import io.liodev.aoc.runDay
+
+// TEMPLATE (replace Day99 for DayXX and year)
 class Day99(
     input: String,
 ) : Day<Int> {
