@@ -11,19 +11,18 @@ class Day11(
     override val expectedValues = listOf(10605L, 56350, 2713310158L, 13954061248)
 
     private val monkeys = input.split("\n\n").map { Monkey.fromString(it) }
+    private val lcm = monkeys.map { it.divisible }.reduce { acc, i -> acc * i }
 
     override fun solvePart1() = calculateMonkeyBusiness(20, 3)
 
-    override fun solvePart2() = calculateMonkeyBusiness(10000, 1)
+    override fun solvePart2() = calculateMonkeyBusiness(10000)
 
     private fun calculateMonkeyBusiness(
         rounds: Int,
-        reduceWorryLevelBy: Int,
+        reduceWorryLevelBy: Int = 1,
     ): Long {
         val activity = IntArray(monkeys.size) { 0 }
-        val monkeysItems = List(monkeys.size) { monkeys[it].items.toMutableList() }
-
-        val lcm = monkeys.map { it.divisible }.reduce { acc, i -> acc * i }
+        val monkeysItems = Array(monkeys.size) { monkeys[it].items.toMutableList() }
 
         repeat(rounds) {
             monkeys.forEachIndexed { i, monkey ->
@@ -31,15 +30,14 @@ class Day11(
                 while (monkeysItems[i].isNotEmpty()) {
                     val item = monkeysItems[i].removeFirst()
                     val worryLevel = evaluate(monkey.op, item % lcm) / reduceWorryLevelBy
-                    if (worryLevel < 0) throw IllegalStateException("Overflow: $worryLevel ${monkey.op} $item")
+
                     val destination =
                         if (worryLevel % monkey.divisible == 0L) monkey.ifTrue else monkey.ifFalse
-
                     monkeysItems[destination].addLast(worryLevel)
                 }
             }
         }
-        return activity.sortedDescending().take(2).fold(1L) { acc, i -> acc * i }
+        return activity.sortedDescending().take(2).let { it[0].toLong() * it[1] }
     }
 
     private fun evaluate(
@@ -57,7 +55,6 @@ class Day11(
     }
 
     data class Monkey(
-        val id: Int,
         val items: List<Long>,
         val op: String,
         val divisible: Long,
@@ -65,16 +62,16 @@ class Day11(
         val ifFalse: Int,
     ) {
         companion object {
-            internal fun fromString(monkeyString: String): Monkey {
-                val lines = monkeyString.split("\n")
-                val id = lines[0].substringAfter("Monkey ").substringBefore(':').toInt()
-                val items = lines[1].substringAfter(": ").split(", ").map { it.toLong() }
-                val op = lines[2].substringAfter("Operation: new = ")
-                val divisible = lines[3].substringAfter("Test: divisible by ").toLong()
-                val ifTrue = lines[4].substringAfter("If true: throw to monkey ").toInt()
-                val ifFalse = lines[5].substringAfter("If false: throw to monkey ").toInt()
-                return Monkey(id, items.toMutableList(), op, divisible, ifTrue, ifFalse)
-            }
+            internal fun fromString(monkeyString: String) =
+                monkeyString.lines().let {
+                    Monkey(
+                        it[1].substringAfter(": ").split(", ").map { item -> item.toLong() },
+                        it[2].substringAfter("new = "),
+                        it[3].substringAfter("by ").toLong(),
+                        it[4].substringAfter("monkey ").toInt(),
+                        it[5].substringAfter("monkey ").toInt(),
+                    )
+                }
         }
     }
 }
