@@ -3,13 +3,29 @@ package io.liodev.aoc
 import kotlin.time.measureTime
 
 interface Day<T> {
+    /** Values expected for each test, in this order: [[Test Part1, Real Part1, Test Part2, Real Part2]] */
     val expectedValues: List<T>
 
+    /** Solve part 1 of the day */
     fun solvePart1(): T
 
+    /** Solve part 2 of the day */
     fun solvePart2(): T
 }
 
+/**
+ * Runs the solutions for a specific day's Advent of Code puzzle
+ *
+ * This method executes the `solvePart1` and `solvePart2` methods of the provided `Day` instances and
+ * compares the results against expected values
+ *
+ * @param dayTest The `Day` instance containing the solution for the sample/test data.
+ * @param dayReal The `Day` instance containing the solution for the real input data.
+ * @param year The year of this Advent of Code puzzle.
+ * @param extraDays An optional list of additional `Day` instances to run.
+ * @param printTimings If `true`, prints the execution time for each part.
+ * @param skipTests A list of booleans indicating which tests to skip.
+ */
 fun runDay(
     dayTest: Day<*>,
     dayReal: Day<*>,
@@ -19,7 +35,7 @@ fun runDay(
     skipTests: List<Boolean> = listOf(false, false, false, false),
 ) {
     val christmasSeparator = "❆⋆꙳•✩⋆☃⋆✩•꙳⋆❆"
-    println("\n$christmasSeparator⋆❆⋆꙳ ${dayTest.javaClass.simpleName} $year ꙳⋆❆⋆$christmasSeparator")
+    println("\n$christmasSeparator⋆꙳ ${dayTest.javaClass.simpleName} $year ꙳⋆$christmasSeparator")
 
     for ((i, day) in extraDays.withIndex()) {
         val elapsed =
