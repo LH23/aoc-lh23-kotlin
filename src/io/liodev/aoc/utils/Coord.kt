@@ -175,25 +175,3 @@ fun <E> List<MutableList<E>>.floodFill(
         }
     }
 }
-
-fun List<MutableList<Char>>.parityFloodFillLimit(
-    at: Coord,
-    water: Char,
-    spaces: List<Char>,
-    limit: Int,
-) {
-    if (!this.validIndex(at)) return
-    val queue = ArrayDeque<Pair<Coord, Int>>().apply { add(at to 1) }
-    while (queue.isNotEmpty()) {
-        val (next, distance) = queue.removeFirst()
-        if (this[next] in spaces && distance <= limit + 1) {
-            this[next] = water + distance % 2 // two values
-            queue.addAll(
-                next
-                    .getCardinalBorder()
-                    .filter { this.validIndex(it) }
-                    .map { it to distance + 1 },
-            )
-        }
-    }
-}

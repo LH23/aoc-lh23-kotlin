@@ -5,8 +5,10 @@ import io.liodev.aoc.checkResult
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.Coord
-import io.liodev.aoc.utils.parityFloodFillLimit
+import io.liodev.aoc.utils.get
+import io.liodev.aoc.utils.set
 import io.liodev.aoc.utils.times
+import io.liodev.aoc.utils.validIndex
 
 // --- 2023 Day 21: Step Counter ---
 class Day21(val input: String) : Day<Long> {
@@ -93,6 +95,28 @@ class Day21(val input: String) : Day<Long> {
                 innerEven * (fullSquares.toLong() * fullSquares.toLong()) +
                 cornersEven * (fullSquares.toLong()) -
                 cornersOdd * (fullSquares.toLong() + 1)
+    }
+}
+
+private fun List<MutableList<Char>>.parityFloodFillLimit(
+    at: Coord,
+    water: Char,
+    spaces: List<Char>,
+    limit: Int,
+) {
+    if (!this.validIndex(at)) return
+    val queue = ArrayDeque<Pair<Coord, Int>>().apply { add(at to 1) }
+    while (queue.isNotEmpty()) {
+        val (next, distance) = queue.removeFirst()
+        if (this[next] in spaces && distance <= limit + 1) {
+            this[next] = water + distance % 2 // two values
+            queue.addAll(
+                next
+                    .getCardinalBorder()
+                    .filter { this.validIndex(it) }
+                    .map { it to distance + 1 },
+            )
+        }
     }
 }
 
