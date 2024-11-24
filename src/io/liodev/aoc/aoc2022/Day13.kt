@@ -11,27 +11,24 @@ class Day13(
 ) : Day<Int> {
     override val expectedValues = listOf(13, 5557, 140, 22425)
 
-    private val pairs = input.split("\n\n").map { it.split("\n").toPairOfPackets() }
+    private val pairs = input.split("\n\n").map { it.toPairOfPackets() }
     private val fullList = input.lines().filter { it.isNotEmpty() }.map { Packet.fromString(it) }
 
     override fun solvePart1() = pairs.mapIndexed { i, pair -> if (rightOrder(pair)) (i + 1) else 0 }.sum()
 
-    private fun rightOrder(pair: Pair<Packet, Packet>): Boolean {
-        val left = pair.first
-        val right = pair.second
-//        println("Left: $left")
-//        println("Right: $right")
-        return left < right
-    }
-
     override fun solvePart2(): Int {
-        val decoder2 = Packet.fromString("[[2]]")
-        val decoder6 = Packet.fromString("[[6]]")
-        val sorted = (fullList + listOf(decoder2, decoder6)).sorted()
-        return (sorted.indexOf(decoder2) + 1) * (sorted.indexOf(decoder6) + 1)
+        val divider2 = Packet.fromString("[[2]]")
+        val divider6 = Packet.fromString("[[6]]")
+        val sorted = (fullList + listOf(divider2, divider6)).sorted()
+        return (sorted.indexOf(divider2) + 1) * (sorted.indexOf(divider6) + 1)
     }
 
-    private fun List<String>.toPairOfPackets(): Pair<Packet, Packet> = Packet.fromString(this[0]) to Packet.fromString(this[1])
+    private fun rightOrder(pair: Pair<Packet, Packet>) = pair.first < pair.second
+
+    private fun String.toPairOfPackets(): Pair<Packet, Packet> =
+        split("\n").let {
+            Packet.fromString(it[0]) to Packet.fromString(it[1])
+        }
 
     sealed class Packet : Comparable<Packet> {
         data class Item(
@@ -65,28 +62,19 @@ class Day13(
                 }
             }
 
-            override fun toString() = "[" + items.joinToString { it.toString() } + "]"
+            override fun toString() = items.toString()
         }
-
-        override fun toString(): String =
-            when (this) {
-                is Item -> number.toString()
-                is ListItems -> items.joinToString(",") { it.toString() }
-            }
 
         companion object {
             fun fromString(string: String): Packet =
                 if (string.isNumeric()) {
-                    // println("fromString $string to Item")
                     Item(string.toInt())
                 } else {
-                    // println("fromString $string to ListItems")
                     val items = mutableListOf<Packet>()
                     val stack = Stack<Int>()
                     var prev = 1
                     for (i in 1..<string.lastIndex) {
-                        val char = string[i]
-                        when (char) {
+                        when (string[i]) {
                             '[' -> stack.push(i)
                             ']' -> stack.pop()
                             ',' ->
