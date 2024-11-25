@@ -18,11 +18,29 @@ class Day12(
     override fun solvePart1() = calculateMinStepsAStar(findFirst('S'), findFirst('E'), elevationMap)
 
     override fun solvePart2() =
+        calculateMinStepsBFS(
+            findFirst('E'),
+            findAll(listOf('a', 'S')),
+            elevationMap,
+        ) { curr, next ->
+            // reversed
+            canClimbFromTo(next, curr)
+        }
+
+    // unused, reversed BFS works 5x faster
+    fun solvePart2MinFirstColumn() =
         (0..elevationMap.lastIndex).minOf { r ->
             // TODO make it work in a general case (optimal 'a' can be anywhere)
             // only checking column 0, in my inputs that's enough
             val newStart = Coord(r, 0)
             calculateMinStepsAStar(newStart, findFirst('E'), elevationMap)
+        }
+
+    private fun findAll(chars: List<Char>): List<Coord> =
+        elevationMap.indices.flatMap { row ->
+            elevationMap[row].indices.mapNotNull { col ->
+                if (elevationMap[row][col] in chars) Coord(row, col) else null
+            }
         }
 
     private fun findFirst(c: Char) =
@@ -31,11 +49,11 @@ class Day12(
             elevationMap.first { c in it }.indexOf(c),
         )
 
-    // not used, A* is 30% faster
     private fun calculateMinStepsBFS(
         start: Coord,
-        end: Coord,
+        endOptions: List<Coord>,
         elevationMap: List<List<Char>>,
+        canClimb: (Coord, Coord) -> Boolean = { curr, next -> canClimbFromTo(curr, next) },
     ): Int {
         val queue = ArrayDeque<Pair<Coord, Int>>().apply { add(start to 0) }
         val visited = mutableSetOf<Coord>()
@@ -43,11 +61,11 @@ class Day12(
         while (queue.isNotEmpty()) {
             val (current, steps) = queue.removeFirst()
             visited.add(current)
-            if (current == end) return steps
+            if (current in endOptions) return steps
 
             for (next in current.getCardinalBorder()) {
                 if (next.validIndex(elevationMap) &&
-                    canClimbFromTo(current, next) &&
+                    canClimb(current, next) &&
                     next !in visited &&
                     next !in queue.map { it.first }
                 ) {
