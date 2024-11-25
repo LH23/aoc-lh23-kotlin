@@ -25,7 +25,7 @@ class Day13(
 
     private fun rightOrder(pair: Pair<Packet, Packet>) = pair.first < pair.second
 
-    private fun String.toPairOfPackets(): Pair<Packet, Packet> =
+    private fun String.toPairOfPackets() =
         split("\n").let {
             Packet.fromString(it[0]) to Packet.fromString(it[1])
         }
@@ -38,8 +38,10 @@ class Day13(
                 if (other is Item) {
                     number.compareTo(other.number)
                 } else {
-                    ListItems(listOf(Item(number))).compareTo(other)
+                    asList().compareTo(other)
                 }
+
+            fun asList() = ListItems(listOf(Item(number)))
 
             override fun toString() = number.toString()
         }
@@ -47,20 +49,16 @@ class Day13(
         data class ListItems(
             val items: List<Packet>,
         ) : Packet() {
-            override fun compareTo(other: Packet): Int {
-                return if (other is ListItems) {
-                    for (i in items.indices) {
-                        return when {
-                            i >= other.items.size || items[i] > other.items[i] -> 1
-                            items[i] < other.items[i] -> -1
-                            else -> continue
-                        }
-                    }
-                    return if (other.items.size > items.size) -1 else 0
-                } else {
-                    -1 * other.compareTo(this)
+            override fun compareTo(other: Packet): Int =
+                when (other) {
+                    is ListItems ->
+                        this.items
+                            .zip(other.items)
+                            .map { (a, b) -> a.compareTo(b) }
+                            .firstOrNull { it != 0 } ?: items.size.compareTo(other.items.size)
+
+                    is Item -> this.compareTo(other.asList())
                 }
-            }
 
             override fun toString() = items.toString()
         }
