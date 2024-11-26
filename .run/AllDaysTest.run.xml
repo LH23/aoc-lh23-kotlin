@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="AllDaysTest" type="JUnit" factoryName="JUnit">
+    <module name="aoc-lh23-kotlin.test" />
+    <option name="ALTERNATIVE_JRE_PATH" value="17" />
+    <option name="PACKAGE_NAME" value="io.liodev.aoc" />
+    <option name="MAIN_CLASS_NAME" value="io.liodev.aoc.AllDaysTest" />
+    <option name="METHOD_NAME" value="" />
+    <option name="TEST_OBJECT" value="class" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
