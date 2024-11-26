@@ -28,7 +28,7 @@ data class Coord(
             add(Coord(r + 1, c)) // SOUTH
         }
 
-    override fun toString(): String = "$r-$c"
+    override fun toString(): String = "($r,$c)"
 
     fun validIndex(array: List<List<Char>>): Boolean = validIndex(array[0].size, array.size)
 
