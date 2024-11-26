@@ -156,4 +156,7 @@ class AllDaysTest {
 
     @Test
     fun aoc2022day13() = runTestForDay(io.liodev.aoc.aoc2022.Day13::class, 2022)
+
+    @Test
+    fun aoc2022day14() = runTestForDay(io.liodev.aoc.aoc2022.Day14::class, 2022)
 }

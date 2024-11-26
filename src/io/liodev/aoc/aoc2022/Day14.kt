@@ -4,7 +4,8 @@ import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.Coord
-import io.liodev.aoc.utils.printMatrix
+import io.liodev.aoc.utils.get
+import io.liodev.aoc.utils.set
 import io.liodev.aoc.utils.validIndex
 import kotlin.math.max
 import kotlin.math.min
@@ -16,55 +17,61 @@ class Day14(
     override val expectedValues = listOf(24, 715, 93, 25248)
 
     private val scanTraces =
-        input
-            .split("\n")
-            .map {
-                it
-                    .split(" -> ")
-                    .let { it.map { it.split(",").let { (x, y) -> Coord(y.toInt(), x.toInt()) } } }
-            }.also { traces ->
-                rangeR = traces.flatMap { coord -> coord.map { it.r } }.let { it.min()..it.max() }
-                rangeC = traces.flatMap { coord -> coord.map { it.c } }.let { it.min()..it.max() }
-            }
-    private var rangeR: IntRange
-    private var rangeC: IntRange
+        input.split("\n").map { trace ->
+            trace.split(" -> ").map { it.split(",").let { (x, y) -> Coord(y.toInt(), x.toInt()) } }
+        }
 
-    override fun solvePart1(): Int {
-        val sandMap = scanTraces.buildSandMap()
+    override fun solvePart1(): Int = calculateDroppedSand(scanTraces)
+
+    override fun solvePart2(): Int {
+        val rangeR = getRangeRows(scanTraces)
+        val rangeC = getRangeColumns(scanTraces)
+        val floor =
+            listOf(
+                listOf(
+                    Coord(rangeR.last + 2, rangeC.first - rangeR.last),
+                    Coord(rangeR.last + 2, rangeC.last + rangeR.last),
+                ),
+            )
+        return calculateDroppedSand(scanTraces + floor) + 1
+    }
+
+    private fun getRangeRows(traces: List<List<Coord>>): IntRange =
+        traces.flatMap { trace -> trace.map { it.r } }.let { it.min()..it.max() }
+
+    private fun getRangeColumns(traces: List<List<Coord>>): IntRange =
+        traces.flatMap { trace -> trace.map { it.c } }.let { it.min()..it.max() }
+
+    private fun calculateDroppedSand(traces: List<List<Coord>>): Int {
+        val rangeR = getRangeRows(traces)
+        val rangeC = getRangeColumns(traces)
+        val sandMap = traces.buildSandMap(rangeR, rangeC)
+
         var sand = 0
         while (true) {
-            val sandPos = throwSand(sandMap)
-            if (sandPos.r == -1) break
-            sandMap[sandPos.r][sandPos.c] = 'o'
+            val sandPosition = dropSand(rangeC, sandMap)
+            if (sandPosition.r == -1) break
+            sandMap[sandPosition] = 'o'
             sand++
         }
         return sand
     }
 
-    override fun solvePart2(): Int {
-        val sandMap = scanTraces.buildSandMap(true)
-        var sand = 0
-        while (true) {
-            val sandPos = throwSand(sandMap, rangeR.max())
-//            println("Return sandPos = $sandPos")
-//            sandMap.printMatrix("")
-            if (sandPos.r == -1) break
-            sandMap[sandPos.r][sandPos.c] = 'o'
-            sand++
-        }
-        return sand + 1
-    }
-
-    private fun throwSand(sandMap: List<List<Char>>, expandSize: Int = 0): Coord {
-        val releaseCoord = Coord(0, 500 - rangeC.first + expandSize)
+    private fun dropSand(
+        rangeC: IntRange,
+        sandMap: List<List<Char>>,
+    ): Coord {
+        val releaseCoord = Coord(0, 500 - rangeC.first)
         var sandPos = releaseCoord
         while (true) {
-            when {
-                !sandPos.validIndex(sandMap) -> return Coord(-1, -1)
+            return when {
+                !sandPos.validIndex(sandMap) -> Coord(-1, -1)
                 sandPos.fallOne(sandMap) != null -> {
                     sandPos = sandPos.fallOne(sandMap)!!
+                    continue
                 }
-                sandPos == releaseCoord -> return Coord(-1, -1)
+
+                sandPos == releaseCoord -> Coord(-1, -1)
                 else -> break
             }
         }
@@ -76,29 +83,27 @@ class Day14(
         val downLeft = this.goDown().goLeft()
         val downRight = this.goDown().goRight()
         return when {
-            (!sandMap.validIndex(down) || sandMap[down.r][down.c] == '.') -> down
-            (!sandMap.validIndex(downLeft) || sandMap[downLeft.r][downLeft.c] == '.') -> downLeft
-            (!sandMap.validIndex(downRight) || sandMap[downRight.r][downRight.c] == '.') -> downRight
+            (!sandMap.validIndex(down) || sandMap[down] == '.') -> down
+            (!sandMap.validIndex(downLeft) || sandMap[downLeft] == '.') -> downLeft
+            (!sandMap.validIndex(downRight) || sandMap[downRight] == '.') -> downRight
             else -> null
-        }//.also { println("fallOne = $it") }
+        }
     }
 
-    private fun List<List<Coord>>.buildSandMap(expanded: Boolean = false): List<MutableList<Char>> =
+    private fun List<List<Coord>>.buildSandMap(
+        rangeR: IntRange,
+        rangeC: IntRange,
+    ): List<MutableList<Char>> =
         buildList {
             repeat(rangeR.last + 1) {
-                add(MutableList(rangeC.last - rangeC.first + 1 + if (expanded) rangeR.last * 2 else 0) { '.' })
-            }
-
-            if (expanded) {
-                add(MutableList(rangeC.last - rangeC.first + 1 + rangeR.last * 2) { '.' })
-                add(MutableList(rangeC.last - rangeC.first + 1 + rangeR.last * 2) { '#' })
+                add(MutableList(rangeC.last - rangeC.first + 1) { '.' })
             }
 
             this@buildSandMap.forEach { coord ->
                 coord.zipWithNext { a, b ->
                     for (r in min(a.r, b.r)..max(a.r, b.r)) {
                         for (c in min(a.c, b.c)..max(a.c, b.c)) {
-                            this[r][c - rangeC.first + if (expanded) rangeR.last else 0] = '#'
+                            this[r][c - rangeC.first] = '#'
                         }
                     }
                 }
@@ -111,5 +116,5 @@ fun main() {
     val year = 2022
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day14(testInput), Day14(realInput), year)
+    runDay(Day14(testInput), Day14(realInput), year, printTimings = true)
 }
