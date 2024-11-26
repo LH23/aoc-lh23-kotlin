@@ -14,18 +14,10 @@ class Day15(
 
     private val sensors = input.split("\n").map { SensorData.from(it) }
 
-    override fun solvePart1(): Long {
-        val rowToCheck = if (sensors[0].sensorPos.r == 18) 10 else 2000000
-        val sensorRanges = getSensorRanges(rowToCheck)
-
-        var count = 0
-        for (i in sensorRanges.minOf { it.first }..sensorRanges.maxOf { it.last }) {
-            count += if (sensorRanges.any { range -> i in range }) 1 else 0
-        }
-        val beaconsInRow = sensors.map { it.closestBeacon }.toSet().filter { it.r == rowToCheck }
-        //println("beacons in row $beaconsInRow")
-        return count.toLong() - beaconsInRow.size
-    }
+    override fun solvePart1() =
+        getSensorRanges(if (sensors[0].sensorPos.r == 18) 10 else 2000000)
+            .sumOf { it.last - it.first }
+            .toLong()
 
     override fun solvePart2(): Long {
         val rangeToCheck = if (sensors[0].sensorPos.r == 18) 0..20 else 0..4000000
@@ -33,9 +25,8 @@ class Day15(
         for (i in rangeToCheck) {
             val sensorRanges = getSensorRanges(i)
             if (sensorRanges.size > 1 && sensorRanges[0].last in rangeToCheck) {
-                //println("sensorRanges: $sensorRanges")
-                val hiddenBeacon = Coord(i, sensorRanges[0].last + 1)
-                return hiddenBeacon.c.toLong() * 4000000 + hiddenBeacon.r
+                val distressBeacon = Coord(i, sensorRanges[0].last + 1)
+                return distressBeacon.c.toLong() * 4000000 + distressBeacon.r
             }
         }
         return -1
@@ -58,8 +49,14 @@ class Day15(
     data class SensorData(
         val sensorPos: Coord,
         val closestBeacon: Coord,
-        val distanceToBeacon: Int,
     ) {
+        val distanceToBeacon: Int = manhattanDistance(sensorPos, closestBeacon)
+
+        private fun manhattanDistance(
+            a: Coord,
+            b: Coord,
+        ): Int = abs(a.r - b.r) + abs(a.c - b.c)
+
         companion object {
             fun from(sensorString: String): SensorData {
                 val (s, b) = sensorString.split(':')
@@ -73,38 +70,24 @@ class Day15(
                         b.substringAfter("y=").toInt(),
                         b.substringAfter("x=").substringBefore(",").toInt(),
                     )
-                return SensorData(sensor, beacon, manhattanDistance(sensor, beacon))
+                return SensorData(sensor, beacon)
             }
-
-            private fun manhattanDistance(
-                a: Coord,
-                b: Coord,
-            ): Int = abs(a.r - b.r) + abs(a.c - b.c)
         }
     }
 }
 
-private fun List<IntRange>.simplify(): List<IntRange> {
-    val sorted = this.sortedBy { it.first }
-    return sorted.fold(listOf()) { acc, range ->
+private fun List<IntRange>.simplify(): List<IntRange> =
+    this.sortedBy { it.first }.fold(listOf()) { acc, range ->
         when {
-            acc.isEmpty() -> {
-                listOf(range)
-            }
-            acc.last().last >= range.first -> {
-                acc.dropLast(1) + listOf(acc.last().first..maxOf(acc.last().last, range.last))
-            }
-            else -> {
-                acc + listOf(range)
-            }
+            acc.isEmpty() || acc.last().last < range.first -> acc + listOf(range)
+            else -> acc.dropLast(1) + listOf(acc.last().first..maxOf(acc.last().last, range.last))
         }
     }
-}
 
 fun main() {
     val name = Day15::class.simpleName
     val year = 2022
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day15(testInput), Day15(realInput), year)
+    runDay(Day15(testInput), Day15(realInput), year, printTimings = true)
 }
