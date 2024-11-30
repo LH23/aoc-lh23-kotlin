@@ -4,7 +4,6 @@ import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import kotlin.math.max
-import kotlin.math.min
 
 // --- Day 16 2022: Proboscidea Volcanium ---
 class Day16(
@@ -14,16 +13,16 @@ class Day16(
 
     private val flowRate = mutableMapOf<String, Int>()
     private val pipes = constructPipesGraph(input.split("\n"))
+    private val pipesMatrix = pipes.toDistanceMatrix()
+    private val minDistancesMatrix = pipesMatrix.floydWarshall()
     private val pipeKeys = pipes.keys.toList()
-    private val cacheMaxPressure: MutableMap<Set<Int>, Long> = mutableMapOf()
 
     private fun constructPipesGraph(lines: List<String>) =
         buildMap<String, MutableList<Pair<String, Int>>> {
             lines.forEach {
-                // Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
                 val label = it.substring(6, 8)
                 val rate = it.substringAfter("rate=").substringBefore(';').toInt()
-                flowRate.set(label, rate)
+                flowRate[label] = rate
                 val tunnels = it.substringAfter("to valve").substringAfter(" ").split(", ")
                 this
                     .getOrPut(label) { mutableListOf() }
@@ -44,33 +43,52 @@ class Day16(
         }
 
     override fun solvePart1(): Long {
-        cacheMaxPressure.clear()
-        val matrix = pipes.toDistanceMatrix()
-        val minDistancesMatrix = matrix.floydWarshall()
-        // println("pipes $pipes")
-        // println("minDistances:\n${minDistancesMatrix.printMatrix()}")
         val aa = pipeKeys.indexOf("AA")
         return calcMaxPressure(minDistancesMatrix, 30, setOf(aa), aa, 0L)
     }
 
     override fun solvePart2(): Long {
-        cacheMaxPressure.clear()
-        val matrix = pipes.toDistanceMatrix()
-        val minDistancesMatrix = matrix.floydWarshall()
-        // println("pipes $pipes")
-        // println("minDistances:\n${minDistancesMatrix.printMatrix()}")
         val aa = pipeKeys.indexOf("AA")
-        return calcMaxPressureDouble(
-            minDistancesMatrix,
-            26,
-            setOf(aa),
-            0,
-            aa,
-            0,
-            aa,
-            0L,
-        )
+        return pipeKeys.indices
+            .toList()
+            .filter { it != aa }
+            .generateGroupsOfSize(pipeKeys.size / 2, setOf())
+            .maxOf { myValves ->
+                val elephantValves = pipeKeys.indices.filter { it !in myValves && it != aa }
+                val maxPressureMe =
+                    calcMaxPressure(
+                        minDistancesMatrix,
+                        26,
+                        setOf(aa),
+                        aa,
+                        0L,
+                        listOf(aa) + myValves,
+                    )
+                val maxPressureElephant =
+                    calcMaxPressure(
+                        minDistancesMatrix,
+                        26,
+                        setOf(aa),
+                        aa,
+                        0L,
+                        listOf(aa) + elephantValves,
+                    )
+
+                maxPressureMe + maxPressureElephant
+            }
     }
+
+    private fun List<Int>.generateGroupsOfSize(
+        size: Int,
+        with: Set<Int>,
+    ): List<Set<Int>> =
+        when {
+            with.size == size -> listOf(with)
+            this.isEmpty() -> listOf()
+            else ->
+                this.drop(1).generateGroupsOfSize(size, with + this.first()) +
+                    this.drop(1).generateGroupsOfSize(size, with)
+        }
 
     private fun calcMaxPressure(
         minDistancesMatrix: Array<IntArray>,
@@ -78,23 +96,13 @@ class Day16(
         openValves: Set<Int>,
         currentIndex: Int,
         releasedPressure: Long,
+        pipes: List<Int> = pipeKeys.indices.toList(),
     ): Long =
-        if (openValves.size == flowRate.size || time == 0) {
-            // if (releasedPressure > 1700) println("final pressure $releasedPressure, ${openValves.map { pipeKeys[it] }} time $time s")
+        if (openValves.size == pipes.size || time == 0) {
             releasedPressure
-//        } else if (cacheMaxPressure.getOrDefault(openValves, Long.MIN_VALUE) > releasedPressure) {
-//            println("trim $openValves: ${cacheMaxPressure.getOrDefault(openValves, Long.MIN_VALUE)} > $releasedPressure")
-//            0// trim recursion
         } else {
-            pipeKeys.indices
-                .filter { it !in openValves }
-                .sortedByDescending { index ->
-                    flowRate[pipeKeys[index]]!! *
-                        max(
-                            time - minDistancesMatrix[currentIndex][index] - 1,
-                            0,
-                        )
-                }.take(10)
+            minDistancesMatrix[currentIndex]
+                .bestCandidates(pipes, time, openValves, pipes.size / 2 + 1)
                 .maxOf { candidate ->
                     val newTime = max(time - minDistancesMatrix[currentIndex][candidate] - 1, 0)
                     val newOpenValves = openValves + listOf(candidate)
@@ -107,126 +115,24 @@ class Day16(
                             newOpenValves,
                             candidate,
                             newReleasedPressure,
+                            pipes,
                         )
-                    // println("New open valves $newOpenValves candidate $candidate pressure: $releasedPressure + ${flowRate[pipeKeys[candidate]]!!} * $newTime = $result",)
-//                    if (cacheMaxPressure.getOrPut(newOpenValves, defaultValue = { Long.MIN_VALUE }) <= result) {
-//                        cacheMaxPressure[newOpenValves] = result
-//                    }
                     result
                 }
         }
 
-    var maxPressure = 0L
-
-    private fun calcMaxPressureDouble(
-        minDistancesMatrix: Array<IntArray>,
+    private fun IntArray.bestCandidates(
+        pipes: List<Int>,
         time: Int,
         openValves: Set<Int>,
-        distanceToDest1: Int,
-        currentDest1: Int,
-        distanceToDest2: Int,
-        currentDest2: Int,
-        releasedPressure: Long,
-        debugList: List<Any> = emptyList(),
-    ): Long {
-        if (openValves.size == flowRate.size || time == 0) {
-//            if (releasedPressure > 1800) {
-//                println("final pressure $releasedPressure, ${openValves.map { pipeKeys[it] }} time $time s, debugList $debugList")
-//            }
-            if (releasedPressure > 2300 && releasedPressure > maxPressure) {
-                println("new maxPresure $releasedPressure debugList $debugList")
-                maxPressure = releasedPressure
-            }
-            return releasedPressure
-        }
-
-        val candidatesPairs =
-            pipeKeys.indices
-                .filter { it !in openValves }
-                .unorderedPairs(distanceToDest1, currentDest1, distanceToDest2, currentDest2)
-
-        if (candidatesPairs.isEmpty()) return releasedPressure
-
-        return candidatesPairs
-            .maxOf { (candidate1, candidate2) ->
-                val distCandidate1 =
-                    if (distanceToDest1 > 0) distanceToDest1 else minDistancesMatrix[currentDest1][candidate1] + 1
-                val distCandidate2 =
-                    if (distanceToDest2 > 0) distanceToDest2 else minDistancesMatrix[currentDest2][candidate2] + 1
-                val travelTime = min(distCandidate1, distCandidate2)
-                val newTime = max(time - travelTime, 0)
-
-//                println(
-//                    "me going to ${pipeKeys[candidate1]} (in ${distCandidate1}s), elephant going to ${pipeKeys[candidate2]} (in ${distCandidate2}s), travelTime $travelTime, newTime $newTime",
-//                )
-                val opened = mutableSetOf<Int>()
-                val pressure1 =
-                    if (distCandidate1 == travelTime && candidate1 !in openValves) {
-                        // println("ME Opening ${pipeKeys[candidate1]} at ${26 - newTime} (opened already ${openValves.map { pipeKeys[it] }})")
-                        opened.add(candidate1)
-                        flowRate[pipeKeys[candidate1]]!!.toLong() * newTime
-                    } else {
-                        0
-                    }
-                val pressure2 =
-                    if (distCandidate2 == travelTime && candidate2 !in (openValves + opened)) {
-                        // println("ELEPHANT Opening ${pipeKeys[candidate2]} at ${26 - newTime} (opened already ${openValves.map { pipeKeys[it] }})")
-                        opened.add(candidate2)
-                        flowRate[pipeKeys[candidate2]]!!.toLong() * newTime
-                    } else {
-                        0
-                    }
-
-                val result =
-                    calcMaxPressureDouble(
-                        minDistancesMatrix,
-                        newTime,
-                        openValves + opened,
-                        distCandidate1 - travelTime,
-                        candidate1,
-                        distCandidate2 - travelTime,
-                        candidate2,
-                        releasedPressure + pressure1 + pressure2,
-                        debugList + "Opened: ${opened.map { pipeKeys[it] }} (at ${newTime}s) (p1 $pressure1 p2 $pressure2))",
-                    )
-
-                // println("open valves ${openValves + listOf(candidate)} candidate $candidate pressure: $releasedPressure + ${flowRate[pipeKeys[candidate]]!!} * $newTime = $result")
-                result
-            }
-    }
-
-    private fun List<Int>.unorderedPairs(
-        distanceToDest1: Int,
-        dest1: Int,
-        distanceToDest2: Int,
-        dest2: Int,
-    ): List<Pair<Int, Int>> =
-        when {
-            distanceToDest1 != 0 -> this.map { dest1 to it }
-            distanceToDest2 != 0 -> this.map { it to dest2 }
-            else -> generateAllPairs(this).toList()
-        }
-
-    private fun generateAllPairs(valves: List<Int>): Set<Pair<Int, Int>> {
-        val pairs = mutableSetOf<Pair<Int, Int>>()
-        for (valve in valves) {
-            for (valve2 in valves) {
-                if (valve != valve2) {
-                    pairs.add(valve to valve2)
-                }
-            }
-        }
-        return pairs
-    }
-
-//    private fun IntArray.calculateMaxPressure(
-//        openValves: Set<Int>,
-//    ): List<Int> = pipeKeys.indices
-//            .filter { it !in openValves }
-//            .sortedByDescending {index ->
-//                val remaining = time - this[index] - 1
-//                flowRate[pipeKeys[index]]!!.toLong() * remaining
-//            }.take(3)
+        takeN: Int = 10,
+    ): List<Int> =
+        pipes
+            .filter { it !in openValves }
+            .sortedByDescending { index ->
+                val remaining = time - this[index] - 1
+                flowRate[pipeKeys[index]]!!.toLong() * remaining
+            }.take(takeN)
 
     private fun MutableList<Pair<String, Int>>.addOrReplaceAll(
         dest: String,
@@ -248,7 +154,7 @@ class Day16(
     }
 }
 
-private fun Array<IntArray>.printMatrix() = this.map { it.joinToString(" ") { it.toString() } }.joinToString("\n") { it }
+private fun Array<IntArray>.printMatrix() = this.map { it.joinToString(" ") { n -> "$n" } }.joinToString("\n") { line -> line }
 
 typealias Graph<K> = Map<K, List<Pair<K, Int>>>
 
