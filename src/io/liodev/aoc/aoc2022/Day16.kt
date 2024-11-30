@@ -12,78 +12,48 @@ class Day16(
     override val expectedValues = listOf(1651L, 1754, 1707, 2474)
 
     private val flowRate = mutableMapOf<String, Int>()
-    private val pipes = constructPipesGraph(input.split("\n"))
-    private val pipesMatrix = pipes.toDistanceMatrix()
-    private val minDistancesMatrix = pipesMatrix.floydWarshall()
-    private val pipeKeys = pipes.keys.toList()
-
-    private fun constructPipesGraph(lines: List<String>) =
-        buildMap<String, MutableList<Pair<String, Int>>> {
-            lines.forEach {
-                val label = it.substring(6, 8)
-                val rate = it.substringAfter("rate=").substringBefore(';').toInt()
-                flowRate[label] = rate
-                val tunnels = it.substringAfter("to valve").substringAfter(" ").split(", ")
-                this
-                    .getOrPut(label) { mutableListOf() }
-                    .addAll(tunnels.map { tunnel -> tunnel to 1 })
-            }
-            val valves = flowRate.keys.toList()
-            for (valve in valves) {
-                if (valve != "AA" && flowRate[valve] == 0) {
-                    this[valve]!!.forEach { (dest, distance) ->
-                        this[dest]!!.removeIf { it.first == valve }
-                        this[dest]!!.addOrReplaceAll(dest, distance, this[valve]!!)
-                    }
-                    this[valve]!!.clear()
-                    this.remove(valve)
-                    flowRate.remove(valve)
-                }
-            }
-        }
+    private val valvesMatrix = constructGraph(input.split("\n")).toDistanceMatrix()
+    private val minDistancesMatrix = valvesMatrix.floydWarshall()
+    private val valveNames = flowRate.keys.toList()
 
     override fun solvePart1(): Long {
-        val aa = pipeKeys.indexOf("AA")
-        return calcMaxPressure(minDistancesMatrix, 30, setOf(aa), aa, 0L)
+        val aa = valveNames.indexOf("AA")
+        return calcMaxPressure(30, setOf(aa), aa, valveNames.indices.toList())
     }
 
-    private val pressureCache: MutableMap<Pair<Set<Int>, Int>, Long> = mutableMapOf()
+    private val maxPressureCache: MutableMap<CacheKey, Long> = mutableMapOf()
+
+    data class CacheKey(
+        val time: Int,
+        val currentIndex: Int,
+        val valvesToOpen: Set<Int>,
+    )
 
     override fun solvePart2(): Long {
-        val aa = pipeKeys.indexOf("AA")
-        return pipeKeys.indices
+        val aa = valveNames.indexOf("AA")
+        return valveNames.indices
             .toList()
             .filter { it != aa }
-            .generateGroupsOfSize(pipeKeys.size / 2, setOf())
+            .generateGroupsOfSize(valveNames.size / 2, setOf())
             .map { myValves ->
-                myValves to pipeKeys.indices.filter { it !in myValves && it != aa }.toSet()
+                myValves to valveNames.indices.filter { it !in myValves && it != aa }.toSet()
             }.maxOf { (myValves, elephantValves) ->
                 val maxPressureMe =
-                    pressureCache.getOrPut(
-                        myValves to 26,
-                    ) {
-                        calcMaxPressure(
-                            minDistancesMatrix,
-                            26,
-                            setOf(aa),
-                            aa,
-                            0L,
-                            listOf(aa) + myValves,
-                        )
-                    }
+                    calcMaxPressure(
+                        26,
+                        setOf(aa),
+                        aa,
+                        listOf(aa) + myValves,
+                    )
+
                 val maxPressureElephant =
-                    pressureCache.getOrPut(
-                        elephantValves to 26,
-                    ) {
-                        calcMaxPressure(
-                            minDistancesMatrix,
-                            26,
-                            setOf(aa),
-                            aa,
-                            0L,
-                            listOf(aa) + elephantValves,
-                        )
-                    }
+                    calcMaxPressure(
+                        26,
+                        setOf(aa),
+                        aa,
+                        listOf(aa) + elephantValves,
+                    )
+
                 maxPressureMe + maxPressureElephant
             }
     }
@@ -101,51 +71,77 @@ class Day16(
         }
 
     private fun calcMaxPressure(
-        minDistancesMatrix: Array<IntArray>,
         time: Int,
         openValves: Set<Int>,
         currentIndex: Int,
-        releasedPressure: Long,
-        pipes: List<Int> = pipeKeys.indices.toList(),
+        valves: List<Int>,
     ): Long =
-        if (openValves.size == pipes.size || time == 0) {
-            releasedPressure
+        if (openValves.size == valves.size || time == 0) {
+            0
         } else {
-            pipes
+            valves
                 .bestCandidates(
-                    minDistancesMatrix[currentIndex],
                     time,
+                    currentIndex,
                     openValves,
-                    pipes.size / 2 + 1,
+                    valves.size / 2 + 1,
                 ).maxOf { candidate ->
                     val newTime = max(time - minDistancesMatrix[currentIndex][candidate] - 1, 0)
                     val newOpenValves = openValves + listOf(candidate)
-                    val newReleasedPressure =
-                        releasedPressure + flowRate[pipeKeys[candidate]]!! * newTime
-                    val result =
+                    val newReleasedPressure = candidate.flowRate().toLong() * newTime
+
+                    newReleasedPressure +
                         calcMaxPressure(
-                            minDistancesMatrix,
                             newTime,
                             newOpenValves,
                             candidate,
-                            newReleasedPressure,
-                            pipes,
+                            valves,
                         )
-                    result
                 }
         }
 
     private fun List<Int>.bestCandidates(
-        minDistancesRow: IntArray,
         time: Int,
+        candidate: Int,
         openValves: Set<Int>,
-        takeN: Int = 10,
+        takeN: Int,
     ): List<Int> =
         this
             .filter { it !in openValves }
             .sortedByDescending { index ->
-                flowRate[pipeKeys[index]]!! * (time - minDistancesRow[index] - 1)
+                index.flowRate() * (time - minDistancesMatrix[candidate][index] - 1)
             }.take(takeN)
+
+    private fun constructGraph(lines: List<String>) =
+        buildMap<String, MutableList<Pair<String, Int>>> {
+            lines
+                .forEach {
+                    val label = it.substring(6, 8)
+                    val rate = it.substringAfter("rate=").substringBefore(';').toInt()
+                    flowRate[label] = rate
+                    val tunnels = it.substringAfter("to valve").substringAfter(" ").split(", ")
+                    this
+                        .getOrPut(label) { mutableListOf() }
+                        .addAll(tunnels.map { tunnel -> tunnel to 1 })
+                }
+            this.removeZeroFlowValves()
+        }
+
+    private fun MutableMap<String, MutableList<Pair<String, Int>>>.removeZeroFlowValves() {
+        for (valve in flowRate.keys.toList()) {
+            if (valve != "AA" && flowRate[valve] == 0) {
+                this[valve]!!.forEach { (dest, distance) ->
+                    this[dest]!!.removeIf { it.first == valve }
+                    this[dest]!!.addOrReplaceAll(dest, distance, this[valve]!!)
+                }
+                this[valve]!!.clear()
+                this.remove(valve)
+                flowRate.remove(valve)
+            }
+        }
+    }
+
+    private fun Int.flowRate(): Int = flowRate[valveNames[this]]!!
 
     private fun MutableList<Pair<String, Int>>.addOrReplaceAll(
         dest: String,
@@ -169,7 +165,7 @@ class Day16(
 
 private fun Array<IntArray>.printMatrix() = this.map { it.joinToString(" ") { n -> "$n" } }.joinToString("\n") { line -> line }
 
-typealias Graph<K> = Map<K, List<Pair<K, Int>>>
+private typealias Graph<K> = Map<K, List<Pair<K, Int>>>
 
 private fun <K> Graph<K>.toDistanceMatrix(): Array<IntArray> {
     val keys = this.keys.toList()
