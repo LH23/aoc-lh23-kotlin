@@ -47,33 +47,43 @@ class Day16(
         return calcMaxPressure(minDistancesMatrix, 30, setOf(aa), aa, 0L)
     }
 
+    private val pressureCache: MutableMap<Pair<Set<Int>, Int>, Long> = mutableMapOf()
+
     override fun solvePart2(): Long {
         val aa = pipeKeys.indexOf("AA")
         return pipeKeys.indices
             .toList()
             .filter { it != aa }
             .generateGroupsOfSize(pipeKeys.size / 2, setOf())
-            .maxOf { myValves ->
-                val elephantValves = pipeKeys.indices.filter { it !in myValves && it != aa }
+            .map { myValves ->
+                myValves to pipeKeys.indices.filter { it !in myValves && it != aa }.toSet()
+            }.maxOf { (myValves, elephantValves) ->
                 val maxPressureMe =
-                    calcMaxPressure(
-                        minDistancesMatrix,
-                        26,
-                        setOf(aa),
-                        aa,
-                        0L,
-                        listOf(aa) + myValves,
-                    )
+                    pressureCache.getOrPut(
+                        myValves to 26,
+                    ) {
+                        calcMaxPressure(
+                            minDistancesMatrix,
+                            26,
+                            setOf(aa),
+                            aa,
+                            0L,
+                            listOf(aa) + myValves,
+                        )
+                    }
                 val maxPressureElephant =
-                    calcMaxPressure(
-                        minDistancesMatrix,
-                        26,
-                        setOf(aa),
-                        aa,
-                        0L,
-                        listOf(aa) + elephantValves,
-                    )
-
+                    pressureCache.getOrPut(
+                        elephantValves to 26,
+                    ) {
+                        calcMaxPressure(
+                            minDistancesMatrix,
+                            26,
+                            setOf(aa),
+                            aa,
+                            0L,
+                            listOf(aa) + elephantValves,
+                        )
+                    }
                 maxPressureMe + maxPressureElephant
             }
     }
@@ -101,9 +111,13 @@ class Day16(
         if (openValves.size == pipes.size || time == 0) {
             releasedPressure
         } else {
-            minDistancesMatrix[currentIndex]
-                .bestCandidates(pipes, time, openValves, pipes.size / 2 + 1)
-                .maxOf { candidate ->
+            pipes
+                .bestCandidates(
+                    minDistancesMatrix[currentIndex],
+                    time,
+                    openValves,
+                    pipes.size / 2 + 1,
+                ).maxOf { candidate ->
                     val newTime = max(time - minDistancesMatrix[currentIndex][candidate] - 1, 0)
                     val newOpenValves = openValves + listOf(candidate)
                     val newReleasedPressure =
@@ -121,17 +135,16 @@ class Day16(
                 }
         }
 
-    private fun IntArray.bestCandidates(
-        pipes: List<Int>,
+    private fun List<Int>.bestCandidates(
+        minDistancesRow: IntArray,
         time: Int,
         openValves: Set<Int>,
         takeN: Int = 10,
     ): List<Int> =
-        pipes
+        this
             .filter { it !in openValves }
             .sortedByDescending { index ->
-                val remaining = time - this[index] - 1
-                flowRate[pipeKeys[index]]!!.toLong() * remaining
+                flowRate[pipeKeys[index]]!! * (time - minDistancesRow[index] - 1)
             }.take(takeN)
 
     private fun MutableList<Pair<String, Int>>.addOrReplaceAll(
