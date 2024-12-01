@@ -3,20 +3,28 @@ package io.liodev.aoc.aoc2024
 import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
+import kotlin.math.abs
 
-
+// --- Day 1 2024: Historian Hysteria ---
 class Day01(
     input: String,
 ) : Day<Int> {
-    override val expectedValues = listOf(-1, -1, -1, -1)
+    override val expectedValues = listOf(11, 1189304, 31, 24349736)
 
-    private val parsedInput = parseInput(input)
+    private val listPairs =
+        input.split("\n").map { it.split("   ").let { it[0].toInt() to it[1].toInt() } }
 
-    private fun parseInput(input: String): List<String> = input.split("\n")
+    override fun solvePart1(): Int {
+        val a = listPairs.map { it.first }.sorted()
+        val b = listPairs.map { it.second }.sorted()
+        return a.zip(b).sumOf { abs(it.first - it.second) }
+    }
 
-    override fun solvePart1() = 0
+    override fun solvePart2(): Int {
+        val b = listPairs.map { it.second }.sorted()
 
-    override fun solvePart2() = 0
+        return listPairs.sumOf { pair -> pair.first * b.count { pair.first == it } }
+    }
 }
 
 fun main() {
