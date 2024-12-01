@@ -12,19 +12,20 @@ class Day01(
     override val expectedValues = listOf(11, 1189304, 31, 24349736)
 
     private val listPairs =
-        input.split("\n").map { it.split("   ").let { it[0].toInt() to it[1].toInt() } }
+        input
+            .split("\n")
+            .map { line -> line.split("   ") }
+            .let { it.map { it[0].toInt() } to it.map { it[1].toInt() } }
 
-    override fun solvePart1(): Int {
-        val a = listPairs.map { it.first }.sorted()
-        val b = listPairs.map { it.second }.sorted()
-        return a.zip(b).sumOf { abs(it.first - it.second) }
-    }
+    override fun solvePart1() =
+        listPairs.let { (firstList, secondList) ->
+            firstList.sorted().zip(secondList.sorted()).sumOf { abs(it.first - it.second) }
+        }
 
-    override fun solvePart2(): Int {
-        val b = listPairs.map { it.second }.sorted()
-
-        return listPairs.sumOf { pair -> pair.first * b.count { pair.first == it } }
-    }
+    override fun solvePart2() =
+        listPairs.let { (firstList, secondList) ->
+            firstList.sumOf { a -> a * secondList.count { b -> b == a } }
+        }
 }
 
 fun main() {
