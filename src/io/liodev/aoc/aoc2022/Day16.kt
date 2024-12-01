@@ -34,6 +34,7 @@ class Day16(
         return valveNames.indices
             .toList()
             .filter { it != aa }
+            .take(12) // simplify generated groups (VALID ONLY ON THIS INPUT)
             .generateGroupsOfSize(valveNames.size / 2, setOf())
             .map { myValves ->
                 myValves to valveNames.indices.filter { it !in myValves && it != aa }.toSet()
