@@ -10,13 +10,14 @@ class AllDaysTest {
         fun data(): List<Array<*>> {
             val tests2022: List<Array<*>> = (1..16).map { arrayOf("Day ${it.pad()}", 2022) }
             val tests2023: List<Array<*>> = (1..25).map { arrayOf("Day ${it.pad()}", 2023) }
-            val tests2024: List<Array<*>> = (1..0).map { arrayOf("Day ${it.pad()}", 2023) }
-            return (tests2022 + tests2023)
+            val tests2024: List<Array<*>> = (1..1).map { arrayOf("Day ${it.pad()}", 2024) }
+            return (tests2022 + tests2023 + tests2024)
         }
 
         private fun Int.pad() = toString().padStart(2, '0')
     }
 
+    @Suppress("UNCHECKED_CAST")
     @ParameterizedTest
     @MethodSource("data")
     fun testAllDays(
