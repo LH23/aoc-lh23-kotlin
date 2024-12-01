@@ -1,11 +1,11 @@
-package io.liodev.aoc
+package io.liodev.aoc.aoc2024
 
 import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 
-// TEMPLATE 2024 replace Day99 for DayXX (and year if year != 2024)
-class Day99(
+
+class Day01(
     input: String,
 ) : Day<Int> {
     override val expectedValues = listOf(-1, -1, -1, -1)
@@ -20,9 +20,9 @@ class Day99(
 }
 
 fun main() {
-    val name = Day99::class.simpleName
+    val name = Day01::class.simpleName
     val year = 2024
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day99(testInput), Day99(realInput), year)
+    runDay(Day01(testInput), Day01(realInput), year)
 }

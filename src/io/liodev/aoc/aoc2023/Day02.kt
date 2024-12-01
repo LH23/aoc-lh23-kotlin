@@ -5,7 +5,9 @@ import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 
 // --- 2023 Day 2: Cube Conundrum ---
-class Day02(input: String) : Day<Int> {
+class Day02(
+    input: String,
+) : Day<Int> {
     override val expectedValues = listOf(8, 2541, 2286, 66016)
 
     private val games = input.split('\n').map { it.toGame() }
@@ -18,19 +20,29 @@ class Day02(input: String) : Day<Int> {
 
     override fun solvePart2(): Int = games.map { game ->
         Grab(
-            game.grabs.maxBy { it.red }.red,
-            game.grabs.maxBy { it.green }.green,
-            game.grabs.maxBy { it.blue }.blue
+            game.grabs.maxOf { it.red },
+            game.grabs.maxOf { it.green },
+            game.grabs.maxOf { it.blue },
         )
     }.sumOf { it.red * it.green * it.blue }
 
-    private data class Game(val id: Int, val grabs: List<Grab>)
-    private fun String.toGame() = Game(
-        id = substringBefore(':').split(' ')[1].toInt(),
-        grabs = substringAfter(':').trim().split(';').map { it.toGrab() }
+    private data class Game(
+        val id: Int,
+        val grabs: List<Grab>,
     )
 
-    private data class Grab(val red: Int, val green: Int, val blue: Int)
+    private fun String.toGame() =
+        Game(
+            id = substringBefore(':').split(' ')[1].toInt(),
+            grabs = substringAfter(':').trim().split(';').map { it.toGrab() },
+        )
+
+    private data class Grab(
+        val red: Int,
+        val green: Int,
+        val blue: Int,
+    )
+
     private fun String.toGrab(): Grab {
         val cubes = split(',').map { it.trim() }
         var red = 0
@@ -47,11 +59,10 @@ class Day02(input: String) : Day<Int> {
     }
 }
 
-
 fun main() {
     val name = Day02::class.simpleName
     val year = 2023
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
-    val realInput = readInputAsString("src/input/$year/${name}.txt")
+    val realInput = readInputAsString("src/input/$year/$name.txt")
     runDay(Day02(testInput), Day02(realInput), year)
 }
