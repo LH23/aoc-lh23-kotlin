@@ -4,6 +4,7 @@ import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 
+// --- 2022 Day 2: Rock Paper Scissors ---
 class Day02(
     input: String,
 ) : Day<Int> {

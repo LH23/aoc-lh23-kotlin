@@ -34,5 +34,5 @@ fun main() {
     val year = 2024
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day01(testInput), Day01(realInput), year, printTimings = true)
+    runDay(Day01(testInput), Day01(realInput), year)
 }
