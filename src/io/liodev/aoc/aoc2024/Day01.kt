@@ -15,7 +15,7 @@ class Day01(
         input
             .split("\n")
             .map { line -> line.split("   ").map { it.toInt() } }
-            .let { nums -> nums.map { it[0] } to nums.map { it[1] } }
+            .let { nums -> Pair(nums.map { it[0] }, nums.map { it[1] }) }
 
     override fun solvePart1() =
         listsPair.let { (firstList, secondList) ->
@@ -24,7 +24,8 @@ class Day01(
 
     override fun solvePart2() =
         listsPair.let { (firstList, secondList) ->
-            firstList.sumOf { a -> a * secondList.count { b -> b == a } }
+            val secondListCount = secondList.groupingBy { it }.eachCount()
+            firstList.sumOf { a -> a * secondListCount.getOrDefault(a, 0) }
         }
 }
 
@@ -33,5 +34,5 @@ fun main() {
     val year = 2024
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day01(testInput), Day01(realInput), year)
+    runDay(Day01(testInput), Day01(realInput), year, printTimings = true)
 }
