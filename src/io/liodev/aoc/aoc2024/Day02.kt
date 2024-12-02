@@ -10,34 +10,23 @@ class Day02(
 ) : Day<Int> {
     override val expectedValues = listOf(2, 526, 4, 566)
 
-    private val reportLevels = input.split("\n").map { it.split(" ").map { it.toInt() } }
+    private val reportLevels = input.lines().map { line -> line.split(" ").map { it.toInt() } }
 
     override fun solvePart1() = reportLevels.count { safe(it) }
 
-    private fun safe(levels: List<Int>): Boolean {
-        val zips = levels.zipWithNext()
-        val result =
-            (
-                zips.all { (a, b) -> a < b && b - a < 4 } ||
-                    zips.all { (a, b) -> a > b && a - b < 4 }
-            )
-        println("$levels $result")
-        return result
-    }
-
-    private fun toleratingOneError(levels: List<Int>): Boolean {
-        var result = false
-        for (i in levels.indices) {
-            if (safe(levels.subList(0, i) + levels.subList(i + 1, levels.size))) {
-                result = true
-                break
-            }
-        }
-        println("Tolerating $levels $result")
-        return result
-    }
-
     override fun solvePart2() = reportLevels.count { safe(it) || toleratingOneError(it) }
+
+    private fun safe(levels: List<Int>): Boolean =
+        levels.zipWithNext().let { zips ->
+            zips.all { (a, b) -> a < b && b - a < 4 } ||
+                zips.all { (a, b) -> a > b && a - b < 4 }
+        }
+
+    private fun toleratingOneError(levels: List<Int>): Boolean =
+        levels.indices.any { i ->
+            safe(levels.subList(0, i) + levels.subList(i + 1, levels.size))
+        }
+
 }
 
 fun main() {
