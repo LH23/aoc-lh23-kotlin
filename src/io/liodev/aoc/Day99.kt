@@ -4,19 +4,21 @@ import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 
-// TEMPLATE 2024 replace Day99 for DayXX (and year if year != 2024)
+// TEMPLATE 2024
 class Day99(
     input: String,
 ) : Day<Int> {
     override val expectedValues = listOf(-1, -1, -1, -1)
 
-    private val parsedInput = parseInput(input)
+    private val parsedInput = input.split("\n")
 
-    private fun parseInput(input: String): List<String> = input.split("\n")
+    override fun solvePart1(): Int {
+        return 0
+    }
 
-    override fun solvePart1() = 0
-
-    override fun solvePart2() = 0
+    override fun solvePart2(): Int {
+        return 0
+    }
 }
 
 fun main() {
