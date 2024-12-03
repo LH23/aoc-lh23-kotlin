@@ -1,39 +1,30 @@
 package io.liodev.aoc.aoc2024
 
 import io.liodev.aoc.Day
-import io.liodev.aoc.println
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 
+// --- 2024 Day 3: Mull It Over ---
 class Day03(
     input: String,
 ) : Day<Long> {
     override val expectedValues = listOf(322L, 184576302, 96, 118173507)
 
-    private val corruptedMemory = input.split("\n")
+    private val corruptedMemory = input.split("\n").joinToString("")
+    private val mulRegex = """mul\((\d\d?\d?,\d\d?\d?)\)""".toRegex()
 
     override fun solvePart1(): Long =
-        corruptedMemory.sumOf { line ->
-            val regex = """mul\((\d\d?\d?,\d\d?\d?)\)""".toRegex()
-            val matches = regex.findAll(line)
-            matches.sumOf { match ->
-                match.multiply()
-            }
+        mulRegex.findAll(corruptedMemory).sumOf { match ->
+            match.multiply()
         }
 
     override fun solvePart2(): Long =
-        corruptedMemory.joinToString ("").let { program ->
-            val cleanLine = program.processDoDontInstructions()
-            val regex = """mul\((\d\d?\d?,\d\d?\d?)\)""".toRegex()
-            val matches = regex.findAll(cleanLine)
-            matches.sumOf { match ->
-                //println("match: ${match.value}")
-                match.multiply()
-            }
+        mulRegex.findAll(corruptedMemory.processDoDontInstructions()).sumOf { match ->
+            match.multiply()
         }
 }
 
-private fun MatchResult.multiply(): Long =
+private fun MatchResult.multiply() =
     value
         .substringAfter("(")
         .substringBefore(")")
@@ -43,18 +34,18 @@ private fun MatchResult.multiply(): Long =
 
 private fun String.processDoDontInstructions(): String {
     var next = 0
-    var result = ""
+    var processed = ""
     while (next > -1) {
         val nextDont = this.indexOf("don't()", next)
-        if (nextDont == -1) {
-            result += this.substring(next)
-            break
+        if (nextDont != -1) {
+            processed += this.substring(next, nextDont)
+            next = this.indexOf("do()", nextDont)
+        } else {
+            processed += this.substring(next)
+            next = -1
         }
-        result += this.substring(next, nextDont + 7)
-        next = this.indexOf("do()", nextDont)
     }
-    //println("processDoDontInstructions: $result")
-    return result
+    return processed
 }
 
 fun main() {
