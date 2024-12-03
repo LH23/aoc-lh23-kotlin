@@ -11,7 +11,7 @@ class Day03(
     override val expectedValues = listOf(322, 184576302, 96, 118173507)
 
     private val corruptedMemory = input.split("\n").joinToString("")
-    private val mulRegex = """mul\((\d+),(\d+)\)""".toRegex()
+    private val mulRegex = """mul\((\d{1,3}),(\d{1,3})\)""".toRegex()
     private val dontDoSegmentRegex = """(don't\(\).*?(do\(\)|${'$'}))""".toRegex()
 
     override fun solvePart1() =
@@ -20,13 +20,13 @@ class Day03(
         }
 
     override fun solvePart2() =
-        mulRegex.findAll(corruptedMemory.processDoDontInstructions()).sumOf { match ->
+        mulRegex.findAll(corruptedMemory.removeDontDoSegments()).sumOf { match ->
             match.multiply()
         }
 
     private fun MatchResult.multiply() = groups[1]!!.value.toInt() * groups[2]!!.value.toInt()
 
-    private fun String.processDoDontInstructions() = replace(dontDoSegmentRegex, "")
+    private fun String.removeDontDoSegments() = replace(dontDoSegmentRegex, "")
 }
 
 
