@@ -11,7 +11,7 @@ class Day03(
     override val expectedValues = listOf(322L, 184576302, 96, 118173507)
 
     private val corruptedMemory = input.split("\n").joinToString("")
-    private val mulRegex = """mul\((\d\d?\d?,\d\d?\d?)\)""".toRegex()
+    private val mulRegex = """mul\((\d+),(\d+)\)""".toRegex()
 
     override fun solvePart1(): Long =
         mulRegex.findAll(corruptedMemory).sumOf { match ->
@@ -24,13 +24,7 @@ class Day03(
         }
 }
 
-private fun MatchResult.multiply() =
-    value
-        .substringAfter("(")
-        .substringBefore(")")
-        .split(',')
-        .map { it.toLong() }
-        .reduce { a, b -> a * b }
+private fun MatchResult.multiply() = groups[1]!!.value.toLong() * groups[2]!!.value.toLong()
 
 private fun String.processDoDontInstructions(): String {
     var next = 0
