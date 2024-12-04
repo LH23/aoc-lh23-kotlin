@@ -47,22 +47,10 @@ class Day04(
         return count
     }
 
-    private fun List<List<Char>>.isXmas(
-        x: Coord,
-        m: Coord,
-        a: Coord,
-        s: Coord,
-    ): Boolean =
-        listOf(x, m, a, s).all { it.validIndex(this) } &&
-            this[x] == 'X' &&
-            this[m] == 'M' &&
-            this[a] == 'A' &&
-            this[s] == 'S'
+    private fun List<List<Char>>.isXmas(x: Coord, m: Coord, a: Coord, s: Coord) =
+        listOf(x, m, a, s).all { it.validIndex(this) } && this[x] == 'X' && this[m] == 'M' && this[a] == 'A' && this[s] == 'S'
 
-    private fun List<List<Char>>.isXCrossedMasPattern(
-        i: Int,
-        j: Int,
-    ): Boolean {
+    private fun List<List<Char>>.isXCrossedMasPattern(i: Int, j: Int): Boolean {
         val ij = Coord(i, j)
         return isXCrossedMas(ij.goUp().goLeft(), ij, ij.goDown().goRight(), ij.goUp().goRight(), ij.goDown().goLeft()) ||
             isXCrossedMas(ij.goDown().goRight(), ij, ij.goUp().goLeft(), ij.goDown().goLeft(), ij.goUp().goRight()) ||
@@ -70,19 +58,8 @@ class Day04(
             isXCrossedMas(ij.goDown().goRight(), ij, ij.goUp().goLeft(), ij.goUp().goRight(), ij.goDown().goLeft())
     }
 
-    private fun List<List<Char>>.isXCrossedMas(
-        m: Coord,
-        a: Coord,
-        s: Coord,
-        m2: Coord,
-        s2: Coord,
-    ): Boolean =
-        listOf(m, a, s, m2, s2).all { it.validIndex(this) } &&
-            this[m] == 'M' &&
-            this[a] == 'A' &&
-            this[s] == 'S' &&
-            this[m2] == 'M' &&
-            this[s2] == 'S'
+    private fun List<List<Char>>.isXCrossedMas(m: Coord, a: Coord, s: Coord, m2: Coord, s2: Coord) =
+        this[m] == 'M' && this[a] == 'A' && this[s] == 'S' && this[m2] == 'M' && this[s2] == 'S'
 }
 
 fun main() {
