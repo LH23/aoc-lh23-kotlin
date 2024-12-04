@@ -47,6 +47,14 @@ data class Coord(
 
     fun goRight(n: Int = 1) = this + Coord(0, n)
 
+    fun goUpLeft(n: Int = 1) = this.goUp(n).goLeft(n)
+
+    fun goUpRight(n: Int = 1) = this.goUp(n).goRight(n)
+
+    fun goDownLeft(n: Int = 1) = this.goDown(n).goLeft(n)
+
+    fun goDownRight(n: Int = 1) = this.goDown(n).goRight(n)
+
     fun move(
         dir: Dir,
         n: Int = 1,

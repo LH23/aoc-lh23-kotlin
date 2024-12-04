@@ -25,10 +25,10 @@ class Day04(
                     if (wordSearch.isXmas(ij, ij.goLeft(1), ij.goLeft(2), ij.goLeft(3))) count++
                     if (wordSearch.isXmas(ij, ij.goRight(1), ij.goRight(2), ij.goRight(3))) count++
 
-                    if (wordSearch.isXmas(ij, ij.goDown(1).goRight(1), ij.goDown(2).goRight(2), ij.goDown(3).goRight(3))) count++
-                    if (wordSearch.isXmas(ij, ij.goDown(1).goLeft(1), ij.goDown(2).goLeft(2), ij.goDown(3).goLeft(3))) count++
-                    if (wordSearch.isXmas(ij, ij.goUp(1).goRight(1), ij.goUp(2).goRight(2), ij.goUp(3).goRight(3))) count++
-                    if (wordSearch.isXmas(ij, ij.goUp(1).goLeft(1), ij.goUp(2).goLeft(2), ij.goUp(3).goLeft(3))) count++
+                    if (wordSearch.isXmas(ij, ij.goDownRight(1), ij.goDownRight(2), ij.goDownRight(3))) count++
+                    if (wordSearch.isXmas(ij, ij.goDownLeft(1), ij.goDownLeft(2), ij.goDownLeft(3))) count++
+                    if (wordSearch.isXmas(ij, ij.goUpRight(1), ij.goUpRight(2), ij.goUpRight(3))) count++
+                    if (wordSearch.isXmas(ij, ij.goUpLeft(1), ij.goUpLeft(2), ij.goUpLeft(3))) count++
                 }
             }
         }
@@ -52,14 +52,23 @@ class Day04(
 
     private fun List<List<Char>>.isXCrossedMasPattern(i: Int, j: Int): Boolean {
         val ij = Coord(i, j)
-        return isXCrossedMas(ij.goUp().goLeft(), ij, ij.goDown().goRight(), ij.goUp().goRight(), ij.goDown().goLeft()) ||
-            isXCrossedMas(ij.goDown().goRight(), ij, ij.goUp().goLeft(), ij.goDown().goLeft(), ij.goUp().goRight()) ||
-            isXCrossedMas(ij.goUp().goLeft(), ij, ij.goDown().goRight(), ij.goDown().goLeft(), ij.goUp().goRight()) ||
-            isXCrossedMas(ij.goDown().goRight(), ij, ij.goUp().goLeft(), ij.goUp().goRight(), ij.goDown().goLeft())
+        return isXCrossedMas(ij.goUpLeft(), ij, ij.goDownRight(), ij.goUpRight(), ij.goDownLeft()) ||
+            isXCrossedMas(ij.goDownRight(), ij, ij.goUpLeft(), ij.goDownLeft(), ij.goUpRight()) ||
+            isXCrossedMas(ij.goUpLeft(), ij, ij.goDownRight(), ij.goDownLeft(), ij.goUpRight()) ||
+            isXCrossedMas(ij.goDownRight(), ij, ij.goUpLeft(), ij.goUpRight(), ij.goDownLeft())
     }
 
     private fun List<List<Char>>.isXCrossedMas(m: Coord, a: Coord, s: Coord, m2: Coord, s2: Coord) =
         this[m] == 'M' && this[a] == 'A' && this[s] == 'S' && this[m2] == 'M' && this[s2] == 'S'
+
+    // less code, but slower
+    private fun List<List<Char>>.isXCrossedMasPattern2(i: Int, j: Int): Boolean {
+        val ij = Coord(i, j)
+        val ms = setOf('M', 'S')
+        return this[ij] == 'A' &&
+            setOf(this[ij.goUpLeft()], this[ij.goDownRight()]) == ms &&
+            setOf(this[ij.goUpRight()], this[ij.goDownLeft()]) == ms
+    }
 }
 
 fun main() {
