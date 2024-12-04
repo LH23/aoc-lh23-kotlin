@@ -5,7 +5,6 @@ import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.Coord
 import io.liodev.aoc.utils.get
-import io.liodev.aoc.utils.validIndex
 
 // --- 2024 Day 4: Ceres Search ---
 class Day04(
@@ -40,11 +39,8 @@ class Day04(
         var count = 0
         for (i in 1..<wordSearch.lastIndex) {
             for (j in 1..<wordSearch[0].lastIndex) {
-                val ij = Coord(i, j)
-                if (wordSearch[ij] == 'A') {
-                    if (wordSearch.isXCrossedMasPattern(i, j)) {
-                        count++
-                    }
+                if (wordSearch[Coord(i, j)] == 'A') {
+                    if (wordSearch.isXCrossedMasPattern(i, j)) count++
                 }
             }
         }
@@ -57,10 +53,7 @@ class Day04(
         a: Coord,
         s: Coord,
     ): Boolean =
-        x.validIndex(this) &&
-            m.validIndex(this) &&
-            a.validIndex(this) &&
-            s.validIndex(this) &&
+        listOf(x, m, a, s).all { it.validIndex(this) } &&
             this[x] == 'X' &&
             this[m] == 'M' &&
             this[a] == 'A' &&
@@ -69,34 +62,13 @@ class Day04(
     private fun List<List<Char>>.isXCrossedMasPattern(
         i: Int,
         j: Int,
-    ) = this.isXCrossedMas(
-        Coord(i - 1, j - 1),
-        Coord(i, j),
-        Coord(i + 1, j + 1),
-        Coord(i - 1, j + 1),
-        Coord(i + 1, j - 1),
-    ) ||
-        this.isXCrossedMas(
-            Coord(i + 1, j + 1),
-            Coord(i, j),
-            Coord(i - 1, j - 1),
-            Coord(i + 1, j - 1),
-            Coord(i - 1, j + 1),
-        ) ||
-        this.isXCrossedMas(
-            Coord(i - 1, j - 1),
-            Coord(i, j),
-            Coord(i + 1, j + 1),
-            Coord(i + 1, j - 1),
-            Coord(i - 1, j + 1),
-        ) ||
-        this.isXCrossedMas(
-            Coord(i + 1, j + 1),
-            Coord(i, j),
-            Coord(i - 1, j - 1),
-            Coord(i - 1, j + 1),
-            Coord(i + 1, j - 1),
-        )
+    ): Boolean {
+        val ij = Coord(i, j)
+        return isXCrossedMas(ij.goUp().goLeft(), ij, ij.goDown().goRight(), ij.goUp().goRight(), ij.goDown().goLeft()) ||
+            isXCrossedMas(ij.goDown().goRight(), ij, ij.goUp().goLeft(), ij.goDown().goLeft(), ij.goUp().goRight()) ||
+            isXCrossedMas(ij.goUp().goLeft(), ij, ij.goDown().goRight(), ij.goDown().goLeft(), ij.goUp().goRight()) ||
+            isXCrossedMas(ij.goDown().goRight(), ij, ij.goUp().goLeft(), ij.goUp().goRight(), ij.goDown().goLeft())
+    }
 
     private fun List<List<Char>>.isXCrossedMas(
         m: Coord,
@@ -118,8 +90,5 @@ fun main() {
     val year = 2024
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day04(testInput), Day04(realInput), year, printTimings = true)
-    // INITIAL TIMES
-    // Elapsed Part1: 26.338042ms
-    // Elapsed Part2: 15.005125ms
+    runDay(Day04(testInput), Day04(realInput), year)
 }
