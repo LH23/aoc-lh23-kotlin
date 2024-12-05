@@ -31,12 +31,8 @@ class Day05(
         val rules: List<Pair<Int, Int>>,
     ) {
         fun ordered(pages: List<Int>): Boolean =
-            rules.all { (firstPage, secondPage) ->
-                if (secondPage in pages) {
-                    pages.lastIndexOf(firstPage) < pages.indexOf(secondPage)
-                } else {
-                    true
-                }
+            pages.zipWithNext().all { (firstPage, secondPage) ->
+                compare(firstPage, secondPage) <= 0
             }
 
         fun order(pageNumbers: List<Int>): List<Int> {
@@ -52,6 +48,16 @@ class Day05(
             return reorderedPages.toList()
         }
 
+        // slower
+        fun sort(pageNumbers: List<Int>): List<Int> = pageNumbers.sortedWith { a, b -> compare(a, b) }
+
+        private fun compare(p1: Int, p2: Int): Int =
+            when {
+                p1 to p2 in rules -> -1
+                p2 to p1 in rules -> 1
+                else -> 0
+            }
+
         companion object {
             fun from(s: String): OrderingRules {
                 val list = s.lines().map { it.split("|").map { it.toInt() } }
@@ -66,5 +72,5 @@ fun main() {
     val year = 2024
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day05(testInput), Day05(realInput), year)
+    runDay(Day05(testInput), Day05(realInput), year, printTimings = true)
 }
