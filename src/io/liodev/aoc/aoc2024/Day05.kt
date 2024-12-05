@@ -28,7 +28,7 @@ class Day05(
             .sumOf { pages -> orderingRules.order(pages)[pages.size / 2] }
 
     data class OrderingRules(
-        val rules: List<Pair<Int, Int>>,
+        val rules: Set<Pair<Int, Int>>,
     ) {
         fun ordered(pages: List<Int>): Boolean =
             pages.zipWithNext().all { (firstPage, secondPage) ->
@@ -38,6 +38,10 @@ class Day05(
         fun order(pageNumbers: List<Int>): List<Int> {
             val reorderedPages = mutableListOf<Int>()
             for (page in pageNumbers) {
+                if (ordered(reorderedPages + page)) {
+                    reorderedPages.add(page)
+                    continue
+                }
                 val putAfterIndex =
                     rules
                         .filter { it.second == page && it.first in reorderedPages }
@@ -61,7 +65,7 @@ class Day05(
         companion object {
             fun from(s: String): OrderingRules {
                 val list = s.lines().map { it.split("|").map { it.toInt() } }
-                return OrderingRules(list.map { it[0] to it[1] })
+                return OrderingRules(list.map { it[0] to it[1] }.toSet())
             }
         }
     }
