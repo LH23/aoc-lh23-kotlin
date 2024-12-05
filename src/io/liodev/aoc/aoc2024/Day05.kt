@@ -10,43 +10,30 @@ class Day05(
 ) : Day<Int> {
     override val expectedValues = listOf(143, 6505, 123, 6897)
 
-    private val parsedInput =
-        input.split("\n\n").let {
-            OrderingRules.from(it[0]) to it[1].lines().map { updateLine -> Update.from(updateLine) }
-        }
+    private val orderingRules = OrderingRules.from(input.split("\n\n")[0])
+    private val updates =
+        input
+            .split("\n\n")[1]
+            .lines()
+            .map { line -> line.split(",").map { page -> page.toInt() } }
 
-    override fun solvePart1(): Int {
-        val (orderingRules, updates) = parsedInput
-        return updates
-            .filter { update -> orderingRules.ordered(update.pageNumbers) }
-            .sumOf { it.pageNumbers[it.pageNumbers.size / 2] }
-    }
+    override fun solvePart1(): Int =
+        updates
+            .filter { orderingRules.ordered(it) }
+            .sumOf { pages -> pages[pages.size / 2] }
 
-    override fun solvePart2(): Int {
-        val (orderingRules, updates) = parsedInput
-        return updates
-            .filter { update -> !orderingRules.ordered(update.pageNumbers) }
-            .sumOf { orderingRules.order(it.pageNumbers)[it.pageNumbers.size / 2] }
-    }
-
-    data class Update(
-        val pageNumbers: List<Int>,
-    ) {
-        companion object {
-            fun from(updateLine: String): Update {
-                val pageNumbers = updateLine.split(",").map { it.toInt() }
-                return Update(pageNumbers)
-            }
-        }
-    }
+    override fun solvePart2(): Int =
+        updates
+            .filter { !orderingRules.ordered(it) }
+            .sumOf { pages -> orderingRules.order(pages)[pages.size / 2] }
 
     data class OrderingRules(
         val rules: List<Pair<Int, Int>>,
     ) {
-        fun ordered(updatePages: List<Int>): Boolean =
-            rules.all { (first, second) ->
-                if (second in updatePages) {
-                    updatePages.lastIndexOf(first) < updatePages.indexOf(second)
+        fun ordered(pages: List<Int>): Boolean =
+            rules.all { (firstPage, secondPage) ->
+                if (secondPage in pages) {
+                    pages.lastIndexOf(firstPage) < pages.indexOf(secondPage)
                 } else {
                     true
                 }
@@ -54,13 +41,13 @@ class Day05(
 
         fun order(pageNumbers: List<Int>): List<Int> {
             val reorderedPages = mutableListOf<Int>()
-            for (n in pageNumbers) {
-                val putAfter =
+            for (page in pageNumbers) {
+                val putAfterIndex =
                     rules
-                        .filter { it.second == n && it.first in reorderedPages }
+                        .filter { it.second == page && it.first in reorderedPages }
                         .map { it.first }
-                val afterIndex = putAfter.maxOfOrNull { reorderedPages.indexOf(it) } ?: -1
-                reorderedPages.add(afterIndex + 1, n)
+                        .maxOfOrNull { reorderedPages.indexOf(it) } ?: -1
+                reorderedPages.add(putAfterIndex + 1, page)
             }
             return reorderedPages.toList()
         }
