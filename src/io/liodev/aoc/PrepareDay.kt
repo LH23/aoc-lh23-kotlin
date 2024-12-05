@@ -44,6 +44,7 @@ fun prepareDay(
     }
 }
 
+@Suppress("KotlinConstantConditions")
 fun main() {
     val day = 4
     val year = 2024

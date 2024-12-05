@@ -25,7 +25,7 @@ class Day05(
     override fun solvePart2(): Int =
         updates
             .filter { !orderingRules.ordered(it) }
-            .sumOf { pages -> orderingRules.order(pages)[pages.size / 2] }
+            .sumOf { pages -> orderingRules.sort(pages)[pages.size / 2] }
 
     data class OrderingRules(
         val rules: Set<Pair<Int, Int>>,
@@ -35,13 +35,10 @@ class Day05(
                 compare(firstPage, secondPage) <= 0
             }
 
+        // slower version
         fun order(pageNumbers: List<Int>): List<Int> {
             val reorderedPages = mutableListOf<Int>()
             for (page in pageNumbers) {
-                if (ordered(reorderedPages + page)) {
-                    reorderedPages.add(page)
-                    continue
-                }
                 val putAfterIndex =
                     rules
                         .filter { it.second == page && it.first in reorderedPages }
@@ -52,7 +49,6 @@ class Day05(
             return reorderedPages.toList()
         }
 
-        // slower
         fun sort(pageNumbers: List<Int>): List<Int> = pageNumbers.sortedWith { a, b -> compare(a, b) }
 
         private fun compare(p1: Int, p2: Int): Int =
