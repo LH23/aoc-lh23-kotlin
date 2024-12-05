@@ -35,23 +35,11 @@ fun runDay(
     skipTests: List<Boolean> = listOf(false, false, false, false),
 ) {
     val christmasSeparator = "❆⋆꙳•✩⋆☃⋆✩•꙳⋆❆"
+    val longChristmasSeparator = "$christmasSeparator⋆$christmasSeparator⋆$christmasSeparator"
+
     println("\n$christmasSeparator⋆꙳ ${dayTest.javaClass.simpleName} $year ꙳⋆$christmasSeparator")
 
-    for ((i, day) in extraDays.withIndex()) {
-        val elapsed =
-            measureTime {
-                val result = day.solvePart1()
-                checkResult("ExtraDay$i Part1", result, day.expectedValues[4 + i * 2])
-            }
-        if (printTimings) println(" Elapsed Part1 ExtraDay$i: $elapsed")
-        val elapsed2 =
-            measureTime {
-                val result = day.solvePart2()
-                checkResult("ExtraDay$i Part2", result, day.expectedValues[4 + i * 2 + 1])
-            }
-        if (printTimings) println(" Elapsed Part2 ExtraDay$i: $elapsed2")
-        println("$christmasSeparator⋆$christmasSeparator⋆$christmasSeparator")
-    }
+    processExtraDays(extraDays, printTimings, longChristmasSeparator)
 
     val elapsedPart1 =
         measureTime {
@@ -65,7 +53,7 @@ fun runDay(
             }
         }
     if (printTimings) println(" Elapsed Part1: $elapsedPart1")
-    println("$christmasSeparator⋆$christmasSeparator⋆$christmasSeparator")
+    println(longChristmasSeparator)
 
     val elapsedPart2 =
         measureTime {
@@ -79,5 +67,28 @@ fun runDay(
             }
         }
     if (printTimings) println(" Elapsed Part2: $elapsedPart2")
-    println("$christmasSeparator⋆$christmasSeparator⋆$christmasSeparator")
+    println(longChristmasSeparator)
+
+}
+
+fun processExtraDays(
+    extraDays: List<Day<*>>,
+    printTimings: Boolean,
+    longChristmasSeparator: String,
+) {
+    for ((i, day) in extraDays.withIndex()) {
+        val elapsed =
+            measureTime {
+                val result = day.solvePart1()
+                checkResult("ExtraDay$i Part1", result, day.expectedValues[4 + i * 2])
+            }
+        if (printTimings) println(" Elapsed Part1 ExtraDay$i: $elapsed")
+        val elapsed2 =
+            measureTime {
+                val result = day.solvePart2()
+                checkResult("ExtraDay$i Part2", result, day.expectedValues[4 + i * 2 + 1])
+            }
+        if (printTimings) println(" Elapsed Part2 ExtraDay$i: $elapsed2")
+        println(longChristmasSeparator)
+    }
 }
