@@ -55,7 +55,6 @@ class Day06(
                 if (!currentPos.move(currentDir).validIndex(walkingMap)) break
             }
         }
-        // walkingMap.printPathInMatrix(visited.toList(), '.', 'X')
         return visited.toList()
     }
 
@@ -64,24 +63,17 @@ class Day06(
         val visitedAlready = mutableSetOf<Pair<Coord, Dir>>()
         val obstacles = mutableSetOf<Coord>()
         val guard = guardPosition(walkingMap)
-        // for (position in guardPath) {
-        // BRUTE FORCE
-        for (r in walkingMap.indices) {
-            for (c in walkingMap[r].indices) {
-                val newObstacle = Coord(r, c) // position.first.move(position.second)
-                // visitedAlready += position
-                if (walkingMap[newObstacle] == '#' || newObstacle == guard) {
-                    // visitedAlready += position
-                    continue
-                }
-                val theoreticalPath = calculateGuardPath(guard, Dir.North, setOf(), newObstacle)
-                if (theoreticalPath.last().first == Coord(-1, -1)) {
-                    obstacles += newObstacle
-                    // walkingMap.printPathInMatrix(theoreticalPath.dropLast(1).map { it.first }, fill = 'X')
-                    println("Cycle found after adding obstacle in $newObstacle")
-                }
-                // visitedAlready += position
+        for (position in guardPath.drop(1)) {
+            val newObstacle = position.first
+            if (newObstacle in obstacles || newObstacle in visitedAlready.map { it.first }) {
+                continue
             }
+            // TODO use visitedAlready to speed up
+            val theoreticalPath = calculateGuardPath(guard, Dir.North, setOf(), newObstacle)
+            if (theoreticalPath.last().first == Coord(-1, -1)) {
+                obstacles += newObstacle
+            }
+            visitedAlready += position
         }
         return obstacles.size
     }
