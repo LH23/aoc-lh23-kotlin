@@ -15,6 +15,8 @@ class Day06(
 
     private val walkingMap = input.split("\n").map { it.toCharArray().toList() }
 
+    private val cycle = setOf(Coord(-1, -1) to Dir.North)
+
     override fun solvePart1(): Int =
         calculateGuardPath(guardPosition(walkingMap), Dir.North)
             .map { it.first }
@@ -40,7 +42,7 @@ class Day06(
         visitedAlready: Set<Pair<Coord, Dir>> = setOf(),
         newObstacle: Coord? = null,
     ): Set<Pair<Coord, Dir>> {
-        var currentPos = guardPosition.copy()
+        var currentPos = guardPosition
         var currentDir = initialDir
         val visited = mutableSetOf(currentPos to currentDir)
         while (true) {
@@ -50,8 +52,7 @@ class Day06(
                 currentPos = currentPos.move(currentDir)
                 val current = currentPos to currentDir
                 if (current in visited || current in visitedAlready) {
-                    visited += Coord(-1, -1) to Dir.North
-                    break
+                    return cycle
                 }
                 visited += current
                 if (!currentPos.move(currentDir).validIndex(walkingMap)) break
@@ -63,18 +64,19 @@ class Day06(
     private fun calculateCycles(guardPath: Set<Pair<Coord, Dir>>): Set<Coord> {
         val visitedAlready = mutableSetOf<Pair<Coord, Dir>>()
         val obstacles = mutableSetOf<Coord>()
-
+        var last = guardPath.first()
         for (position in guardPath.drop(1)) {
             val newObstacle = position.first
             if (newObstacle in visitedAlready.map { it.first }) {
                 // already tested
                 continue
             }
-            val (lastPos, lastDir) = visitedAlready.lastOrNull() ?: guardPath.first()
-            val theoreticalPath = calculateGuardPath(lastPos, lastDir, visitedAlready, newObstacle)
-            if (theoreticalPath.last().first == Coord(-1, -1)) {
+            val theoreticalPath =
+                calculateGuardPath(last.first, last.second, visitedAlready, newObstacle)
+            if (theoreticalPath == cycle) {
                 obstacles += newObstacle
             }
+            last = position
             visitedAlready += position
         }
         return obstacles
