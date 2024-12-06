@@ -91,7 +91,15 @@ enum class Dir {
     North,
     West,
     South,
-    East,
+    East, ;
+
+    fun turnRight(): Dir =
+        when (this) {
+            North -> East
+            East -> South
+            South -> West
+            West -> North
+        }
 }
 
 fun Pair<Int, Int>.toCoord() = Coord(this)
@@ -115,7 +123,7 @@ fun <E> List<List<E>>.printMatrix(separator: String = "") {
 
 fun <E> List<List<E>>.printPathInMatrix(
     path: List<Coord>,
-    empty: E?,
+    empty: E? = null,
     fill: E? = null,
 ) {
     val visualizedResult =
