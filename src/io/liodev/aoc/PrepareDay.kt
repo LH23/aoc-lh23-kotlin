@@ -13,17 +13,16 @@ fun prepareDay(
     val paddedDay = day.toString().padStart(2, '0')
 
     val srcKtFile = Path("src/io/liodev/aoc/aoc$year/Day$paddedDay.kt")
-    val dayTemplate =
-        readInputAsString("src/io/liodev/aoc/Day99.kt")
-            .replace("package io.liodev.aoc", "package io.liodev.aoc.aoc$year")
-            .replace("Day99", "Day$paddedDay")
-            .replace("val year = 2024", "val year = $year")
-            .replace("""// TEMPLATE .*?\n""".toRegex(), "// --- $year $day\n")
-
     if (!srcKtFile.exists()) {
+        val dayTemplate =
+            readInputAsString("src/io/liodev/aoc/Day99.kt")
+                .replace("package io.liodev.aoc", "package io.liodev.aoc.aoc$year")
+                .replace("Day99", "Day$paddedDay")
+                .replace("val year = 2024", "val year = $year")
+                .replace("""// TEMPLATE .*?\n""".toRegex(), "// --- $year $day\n")
+
         srcKtFile.createParentDirectories()
         srcKtFile.createFile()
-
         val fileWriter = srcKtFile.writer()
         fileWriter.write(dayTemplate)
         fileWriter.close()
