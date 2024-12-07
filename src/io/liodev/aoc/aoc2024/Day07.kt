@@ -11,39 +11,33 @@ class Day07(
     override val expectedValues = listOf(3749L, 882304362421, 11387, 145149066755184)
 
     private val calibrationEquations =
-        input.split("\n").map {
-            val (result, operands) = it.split(": ")
+        input.lines().map { line ->
+            val (result, operands) = line.split(": ")
             result.toLong() to operands.split(" ").map { it.toLong() }
         }
 
     override fun solvePart1(): Long =
         calibrationEquations
-            .filter { equation -> solvable(equation) }
-            .sumOf { it.first }
-
-    private fun solvable(equation: Pair<Long, List<Long>>): Boolean {
-        val (result, operands) = equation
-        return solveRecursive(result, operands, 0, '+', listOf('+', '*'))
-    }
+            .filter { equation ->
+                val (result, operands) = equation
+                solveRecursive(result, operands, listOf('+', '*'))
+            }.sumOf { it.first }
 
     override fun solvePart2(): Long =
         calibrationEquations
-            .filter { equation -> solvableWithConcat(equation) }
-            .sumOf { it.first }
-
-    private fun solvableWithConcat(equation: Pair<Long, List<Long>>): Boolean {
-        val (result, operands) = equation
-        return solveRecursive(result, operands, 0, '+', listOf('+', '*', '|'))
-    }
+            .filter { equation ->
+                val (result, operands) = equation
+                solveRecursive(result, operands, listOf('+', '*', '|'))
+            }.sumOf { it.first }
 
     private fun solveRecursive(
         result: Long,
         operands: List<Long>,
-        acum: Long,
-        operator: Char,
         operators: List<Char>,
-    ): Boolean {
-        return if (acum > result) {
+        acum: Long = 0L,
+        operator: Char = '+',
+    ): Boolean =
+        if (acum > result) {
             false
         } else {
             when (operands.size) {
@@ -52,12 +46,11 @@ class Day07(
                 else -> {
                     val newAcum = calculate(acum, operands[0], operator)
                     operators.any { op ->
-                        solveRecursive(result, operands.drop(1), newAcum, op, operators)
+                        solveRecursive(result, operands.drop(1), operators, newAcum, op)
                     }
                 }
             }
         }
-    }
 
     private fun calculate(
         a: Long,
