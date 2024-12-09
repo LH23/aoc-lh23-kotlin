@@ -45,22 +45,21 @@ class Day09(
                     var freeSpace = cell.size
                     while (freeSpace > 0) {
                         if (copyFrom.size == 0) {
-                            if (diskMap[j] is MemCell.Space) {
-                                j--
-                                continue
+                            var cellJ = diskMap[j]
+                            while (cellJ !is MemCell.Data) {
+                                cellJ = diskMap[j--]
                             }
-                            copyFrom = diskMap[j] as MemCell.Data
+                            copyFrom = cellJ
+                        }
+                        if (copyFrom.size <= freeSpace) {
+                            defragmented.add(copyFrom)
+                            freeSpace -= copyFrom.size
+                            copyFrom = copyFrom.copy(size = 0)
+                            j--
                         } else {
-                            if (copyFrom.size <= freeSpace) {
-                                defragmented.add(copyFrom)
-                                freeSpace -= copyFrom.size
-                                copyFrom = copyFrom.copy(size = 0)
-                                j--
-                            } else {
-                                defragmented.add(copyFrom.copy(size = freeSpace))
-                                copyFrom = copyFrom.copy(size = copyFrom.size - freeSpace)
-                                freeSpace = 0
-                            }
+                            defragmented.add(copyFrom.copy(size = freeSpace))
+                            copyFrom = copyFrom.copy(size = copyFrom.size - freeSpace)
+                            freeSpace = 0
                         }
                     }
                 }
@@ -75,30 +74,15 @@ class Day09(
 
     override fun solvePart2(): Long {
         val defragmented = diskMap.toMutableList()
-        for (j in diskMap.lastIndex downTo 1) {
-            when (val cell = defragmented[j]) {
-                is MemCell.Space -> continue
-                is MemCell.Data -> {
-                    var i = 1
-                    while (i < j) {
-                        when (val spaceCell = defragmented[i]) {
-                            is MemCell.Data -> i++
-                            is MemCell.Space -> {
-                                if (spaceCell.size >= cell.size) {
-                                    defragmented.removeAt(i)
-                                    defragmented.add(i, cell)
-                                    defragmented.removeAt(j)
-                                    defragmented.add(j, MemCell.Space(cell.size))
-                                    if (spaceCell.size - cell.size > 0) {
-                                        defragmented.add(
-                                            i + 1,
-                                            MemCell.Space(spaceCell.size - cell.size),
-                                        )
-                                    }
-                                    break
-                                }
-                                i++
-                            }
+        for (dataIndex in diskMap.lastIndex downTo 1) {
+            if (defragmented[dataIndex] is MemCell.Data) {
+                for (spaceIndex in 0..dataIndex) {
+                    if (defragmented[spaceIndex] is MemCell.Space) {
+                        val freeSpace = (defragmented[spaceIndex] as MemCell.Space).size
+                        val dataSize = (defragmented[dataIndex] as MemCell.Data).size
+                        if (freeSpace >= dataSize) {
+                            defragmented.swap(spaceIndex, dataIndex)
+                            break
                         }
                     }
                 }
@@ -106,6 +90,23 @@ class Day09(
         }
         // checkMemSize(defragmented)
         return calculateChecksum(defragmented)
+    }
+
+    private fun MutableList<MemCell>.swap(
+        spaceIndex: Int,
+        dataIndex: Int,
+    ) {
+        val spaceCell = get(spaceIndex) as MemCell.Space
+        val dataCell = get(dataIndex) as MemCell.Data
+        apply {
+            removeAt(spaceIndex)
+            add(spaceIndex, dataCell)
+            removeAt(dataIndex)
+            add(dataIndex, MemCell.Space(dataCell.size))
+            if (spaceCell.size > dataCell.size) {
+                add(spaceIndex + 1, MemCell.Space(spaceCell.size - dataCell.size))
+            }
+        }
     }
 
     private fun checkMemSize(defragmented: List<MemCell>) {
@@ -138,12 +139,14 @@ class Day09(
         }
         println()
     }
+
 }
+
 
 fun main() {
     val name = Day09::class.simpleName
     val year = 2024
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day09(testInput), Day09(realInput), year)
+    runDay(Day09(testInput), Day09(realInput), year, printTimings = true)
 }
