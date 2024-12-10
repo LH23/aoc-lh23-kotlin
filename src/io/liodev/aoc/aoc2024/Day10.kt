@@ -20,20 +20,21 @@ class Day10(
         topographicMap
             .findAll(0)
             .sumOf {
-                calculateTrailheadScore(topographicMap, it).toSet().size
+                calculateTrailheadScore(it)
             }
 
     override fun solvePart2() =
         topographicMap
             .findAll(0)
             .sumOf {
-                calculateTrailheadScore(topographicMap, it).size
+                calculateTrailheadRanking(it)
             }
 
-    private fun calculateTrailheadScore(
-        topographicMap: List<List<Int>>,
-        coord: Coord,
-    ): List<Coord> =
+    private fun calculateTrailheadScore(coord: Coord) = calculateTrailheads(coord).toSet().size
+
+    private fun calculateTrailheadRanking(coord: Coord) = calculateTrailheads(coord).size
+
+    private fun calculateTrailheads(coord: Coord): List<Coord> =
         if (topographicMap[coord] == 9) {
             listOf(coord)
         } else {
@@ -42,7 +43,7 @@ class Day10(
                 .filter {
                     it.validIndex(topographicMap) && topographicMap[it] == topographicMap[coord] + 1
                 }.map {
-                    calculateTrailheadScore(topographicMap, it)
+                    calculateTrailheads(it)
                 }.flatten()
         }
 }
