@@ -5,6 +5,7 @@ import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.Coord
 import io.liodev.aoc.utils.Dir
+import io.liodev.aoc.utils.findFirstOrNull
 import io.liodev.aoc.utils.get
 
 // --- 2024 Day 6: Guard Gallivant ---
@@ -25,16 +26,7 @@ class Day06(
 
     override fun solvePart2(): Int = calculateCycles(calculateGuardPath(guardPosition(walkingMap), Dir.North)).size
 
-    private fun guardPosition(walkingMap: List<List<Char>>): Coord {
-        for (r in walkingMap.indices) {
-            for (c in walkingMap[r].indices) {
-                if (walkingMap[r][c] == '^') {
-                    return Coord(r, c)
-                }
-            }
-        }
-        return Coord(-1, -1)
-    }
+    private fun guardPosition(walkingMap: List<List<Char>>) = walkingMap.findFirstOrNull('^')!!
 
     private fun calculateGuardPath(
         guardPosition: Coord,

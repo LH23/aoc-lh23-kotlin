@@ -115,6 +115,29 @@ operator fun <E> List<MutableList<E>>.set(
 
 operator fun <E> List<List<E>>.get(coordinates: Coord): E = this[coordinates.r][coordinates.c]
 
+fun <E> List<List<E>>.findFirstOrNull(e: E): Coord? {
+    for (i in this.indices) {
+        for (j in this[0].indices) {
+            if (this[i][j] == e) {
+                return Coord(i, j)
+            }
+        }
+    }
+    return null
+}
+
+fun <E> List<List<E>>.findAll(e: E): List<Coord> {
+    val list = mutableListOf<Coord>()
+    for (i in this.indices) {
+        for (j in this[0].indices) {
+            if (this[i][j] == e) {
+                list.add(Coord(i, j))
+            }
+        }
+    }
+    return list
+}
+
 fun <E> List<List<E>>.printMatrix(separator: String = "") {
     this.forEach { row ->
         println(row.joinToString(separator) { it.toString() })
