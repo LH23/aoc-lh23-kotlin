@@ -10,7 +10,7 @@ class AllDaysTest {
         fun data(): List<Array<*>> {
             val tests2022: List<Array<*>> = (1..16).map { arrayOf("Day ${it.pad()}", 2022) }
             val tests2023: List<Array<*>> = (1..25).map { arrayOf("Day ${it.pad()}", 2023) }
-            val tests2024: List<Array<*>> = (1..9).map { arrayOf("Day ${it.pad()}", 2024) }
+            val tests2024: List<Array<*>> = (1..10).map { arrayOf("Day ${it.pad()}", 2024) }
             return (tests2022 + tests2023 + tests2024)
         }
 

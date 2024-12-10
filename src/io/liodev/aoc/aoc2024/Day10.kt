@@ -6,11 +6,11 @@ import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.Coord
 import io.liodev.aoc.utils.get
 
-// --- 2024 10
+// --- 2024 Day 10: Hoof It ---
 class Day10(
     input: String,
 ) : Day<Int> {
-    override val expectedValues = listOf(36, 461, 81, -1)
+    override val expectedValues = listOf(36, 461, 81, 875)
 
     private val topographicMap =
         input.lines().map { line -> line.toCharArray().toList().map { it - '0' } }
@@ -20,12 +20,7 @@ class Day10(
         for (i in topographicMap.indices) {
             for (j in topographicMap[i].indices) {
                 if (topographicMap[i][j] == 0) {
-                    trailheads +=
-                        calculateTrailheadScore(
-                            topographicMap,
-                            Coord(i, j),
-                            listOf(Coord(i, j)),
-                        ).toSet().size
+                    trailheads += calculateTrailheadScore(topographicMap, Coord(i, j)).toSet().size
                 }
             }
         }
@@ -37,12 +32,7 @@ class Day10(
         for (i in topographicMap.indices) {
             for (j in topographicMap[i].indices) {
                 if (topographicMap[i][j] == 0) {
-                    trailheads +=
-                        calculateTrailheadScore(
-                            topographicMap,
-                            Coord(i, j),
-                            listOf(Coord(i, j)),
-                        ).size
+                    trailheads += calculateTrailheadScore(topographicMap, Coord(i, j)).size
                 }
             }
         }
@@ -52,19 +42,20 @@ class Day10(
     private fun calculateTrailheadScore(
         topographicMap: List<List<Int>>,
         coord: Coord,
-        debugList: List<Coord>,
     ): List<Coord> {
         val currHeight = topographicMap[coord]
         return if (currHeight == 9) {
             listOf(coord)
         } else {
-            coord.getCardinalBorder().flatMap {
-                if (it.validIndex(topographicMap) && topographicMap[it] == currHeight + 1) {
-                    calculateTrailheadScore(topographicMap, it, debugList + it)
-                } else {
-                    listOf()
-                }
-            }
+            coord
+                .getCardinalBorder()
+                .mapNotNull {
+                    if (it.validIndex(topographicMap) && topographicMap[it] == currHeight + 1) {
+                        calculateTrailheadScore(topographicMap, it)
+                    } else {
+                        null
+                    }
+                }.flatten()
         }
     }
 }
