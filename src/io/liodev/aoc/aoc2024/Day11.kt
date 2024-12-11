@@ -14,8 +14,7 @@ class Day11(
 
     override fun solvePart1(): Long =
         initialArrangement
-            .sumOf { stone -> calculate25Blinks(stone).size }
-            .toLong()
+            .sumOf { stone -> calculateBlinks(25, stone) }
 
     override fun solvePart2(): Long {
         val stonesMap = mutableMapOf<Pair<Int, Long>, Long>()
@@ -29,7 +28,7 @@ class Day11(
     private fun calculateBlinks(
         repeat: Int,
         stone: Long,
-        stonesMap: MutableMap<Pair<Int, Long>, Long>,
+        stonesMap: MutableMap<Pair<Int, Long>, Long> = mutableMapOf(),
     ): Long {
         if (stonesMap[repeat to stone] != null) return stonesMap[repeat to stone]!!
         val stones = blink(listOf(stone))
@@ -73,5 +72,5 @@ fun main() {
     val year = 2024
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day11(testInput), Day11(realInput), year, printTimings = true, benchmark = false)
+    runDay(Day11(testInput), Day11(realInput), year, printTimings = true)
 }
