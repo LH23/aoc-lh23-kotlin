@@ -3,7 +3,6 @@ package io.liodev.aoc.aoc2024
 import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
-import kotlin.math.pow
 
 // --- 2024 Day 11: Plutonian Pebbles ---
 class Day11(
@@ -19,37 +18,25 @@ class Day11(
             .toLong()
 
     override fun solvePart2(): Long {
-        val stonesMap25 = mutableMapOf<Long, List<Long>>()
+        val stonesMap = mutableMapOf<Pair<Int, Long>, Long>()
         var totalStones = 0L
-
         for (stone in initialArrangement) {
-            val stones = calculate25Blinks(stone, stonesMap25)
-            stonesMap25[stone] = stones
-
-            for (stone2 in stones) {
-                val stones2 = calculate25Blinks(stone2, stonesMap25)
-                stonesMap25[stone2] = stones2
-
-                for (stone3 in stones2) {
-                    val stones3 = calculate25Blinks(stone3, stonesMap25)
-                    stonesMap25[stone3] = stones3
-                    totalStones += stones3.size
-                }
-            }
+            totalStones += calculateBlinks(75, stone, stonesMap)
         }
         return totalStones
     }
 
-    private fun calculate25Blinks(
+    private fun calculateBlinks(
+        repeat: Int,
         stone: Long,
-        stonesMap: MutableMap<Long, List<Long>> = mutableMapOf(),
-    ): List<Long> {
-        if (stonesMap[stone] != null) return stonesMap[stone]!!
-        var stones = listOf(stone)
-        repeat(25) {
-            stones = blink(stones)
-        }
-        return stones
+        stonesMap: MutableMap<Pair<Int, Long>, Long>,
+    ): Long {
+        if (stonesMap[repeat to stone] != null) return stonesMap[repeat to stone]!!
+        val stones = blink(listOf(stone))
+        if (repeat == 1) return stones.size.toLong()
+        val size = stones.sumOf { s -> calculateBlinks(repeat - 1, s, stonesMap) }
+        stonesMap[repeat to stone] = size
+        return size
     }
 
     private fun blink(stones: List<Long>): List<Long> {
@@ -63,6 +50,7 @@ class Day11(
                     result.add(stone / p)
                     result.add(stone % p)
                 }
+
                 else -> result.add(stone * 2024L)
             }
         }
