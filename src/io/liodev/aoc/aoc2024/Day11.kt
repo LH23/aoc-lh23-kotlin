@@ -18,11 +18,8 @@ class Day11(
 
     override fun solvePart2(): Long {
         val stonesMap = mutableMapOf<Pair<Int, Long>, Long>()
-        var totalStones = 0L
-        for (stone in initialArrangement) {
-            totalStones += calculateBlinks(75, stone, stonesMap)
-        }
-        return totalStones
+        return initialArrangement
+            .sumOf { stone -> calculateBlinks(75, stone, stonesMap) }
     }
 
     private fun calculateBlinks(
