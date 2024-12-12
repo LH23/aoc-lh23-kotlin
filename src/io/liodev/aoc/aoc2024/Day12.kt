@@ -16,7 +16,18 @@ class Day12(
     override val expectedValues = listOf(1930L, 1477762, 1206, 923480, 692, 236)
 
     private val gardenPlots = input.lines().map { line -> line.map { it } }
-    val regions = calculateRegions(gardenPlots)
+    private val regions =
+        buildList {
+            val added = mutableSetOf<Coord>()
+            (gardenPlots.indices * gardenPlots[0].indices).forEach { (r, c) ->
+                val current = Coord(r, c)
+                if (current !in added) {
+                    val region = gardenPlots.getRegion(current)
+                    this.add(region)
+                    added.addAll(region.regionCoords)
+                }
+            }
+        }
 
     override fun solvePart1(): Long =
         regions.sumOf { region ->
@@ -25,89 +36,65 @@ class Day12(
 
     override fun solvePart2(): Long =
         regions.sumOf { region ->
-//            println(
-//                "Region ${gardenPlots[region.coords.first()]}: ${region.area} * ${region.sides} = ${region.area * region.sides}",
-//            )
             region.area.toLong() * region.sides
         }
 
-    private fun calculateRegions(gardenPlots: List<List<Char>>): List<Region> =
-        buildList {
-            val added = mutableSetOf<Coord>()
-            (gardenPlots.indices * gardenPlots[0].indices).forEach { (r, c) ->
-                val current = Coord(r, c)
-                if (current !in added) {
-                    val region = gardenPlots.getRegion(current)
-                    this.add(region)
-                    added.addAll(region.coords)
-                }
-            }
-        }
-
     class Region(
-        val gardenPlots: List<List<Char>>,
-        val coords: Set<Coord>,
+        val regionCoords: Set<Coord>,
     ) {
-        val area = coords.size
+        val area = regionCoords.size
         private val perimeterCoords =
-            coords
+            regionCoords
                 .flatMap { coord ->
-                    coord.getCardinalBorder().filter { it !in coords }
+                    coord.getCardinalBorder().filter { it !in regionCoords }
                 }
         val perimeter = perimeterCoords.size
         val sides = calculateSides(perimeterCoords)
 
         private fun calculateSides(perimeterCoords: List<Coord>): Int {
-            val sidesList = mutableListOf<Set<Coord>>()
+            val sidesSet = mutableSetOf<Pair<Set<Coord>, Dir>>()
             for (perimeterCoord in perimeterCoords.toSet()) {
-                val verticalW = verticalSide(perimeterCoord, Dir.West).toSet()
-                val verticalE = verticalSide(perimeterCoord, Dir.East).toSet()
-                val horizontalN = horizontalSide(perimeterCoord, Dir.North).toSet()
-                val horizontalS = horizontalSide(perimeterCoord, Dir.South).toSet()
-                if (verticalW.size > 1 && verticalW !in sidesList) sidesList.add(verticalW)
-                if (verticalE.size > 1 && verticalE !in sidesList) sidesList.add(verticalE)
-                if (horizontalN.size > 1 && horizontalN !in sidesList) sidesList.add(horizontalN)
-                if (horizontalS.size > 1 && horizontalS !in sidesList) sidesList.add(horizontalS)
-                if (verticalW.size > 1 && verticalW == verticalE && sidesList.count { it == verticalW} == 1) sidesList.add(verticalW)
-                if (horizontalN.size > 1 && horizontalN == horizontalS && sidesList.count { it == horizontalN} == 1) sidesList.add(horizontalN)
+                sidesSet.addAll(
+                    listOf(
+                        verticalSide(perimeterCoord, Dir.West) to Dir.West,
+                        verticalSide(perimeterCoord, Dir.East) to Dir.East,
+                        horizontalSide(perimeterCoord, Dir.North) to Dir.North,
+                        horizontalSide(perimeterCoord, Dir.South) to Dir.South,
+                    ).filter { it.first.size > 1 },
+                )
             }
-            //println("LongSides for ${gardenPlots[coords.first()]}: $sidesList, perimeter $perimeter")
-            return perimeter - sidesList.sumOf { it.size - 1 }
+            return perimeter - sidesSet.sumOf { it.first.size - 1 }
         }
 
-        private fun verticalSide(coord: Coord, dir: Dir) =
-            buildList {
-                val queue = ArrayDeque<Coord>()
-                queue.add(coord)
-                if (coord.move(dir) !in coords) return@buildList
+        private fun verticalSide(
+            coord: Coord,
+            dir: Dir,
+        ) = getSide(coord, dir, Coord::getVerticalBorder)
 
-                while (queue.isNotEmpty()) {
-                    val current = queue.removeFirst()
-                    this.add(current)
-                    queue.addAll(
-                        current.getVerticalBorder().filter {
-                            it !in this && it in perimeterCoords && it.move(dir) in coords
-                        },
-                    )
-                }
+        private fun horizontalSide(
+            coord: Coord,
+            dir: Dir,
+        ) = getSide(coord, dir, Coord::getHorizontalBorder)
+
+        private fun getSide(
+            coord: Coord,
+            dir: Dir,
+            coordsToCheck: (Coord) -> List<Coord>,
+        ) = buildList {
+            val queue = ArrayDeque<Coord>()
+            queue.add(coord)
+            if (coord.move(dir) !in regionCoords) return@buildList
+
+            while (queue.isNotEmpty()) {
+                val current = queue.removeFirst()
+                this.add(current)
+                queue.addAll(
+                    coordsToCheck(current).filter {
+                        it !in this && it in perimeterCoords && it.move(dir) in regionCoords
+                    },
+                )
             }
-
-        private fun horizontalSide(coord: Coord, dir: Dir) =
-            buildList {
-                val queue = ArrayDeque<Coord>()
-                queue.add(coord)
-                if (coord.move(dir) !in coords) return@buildList
-
-                while (queue.isNotEmpty()) {
-                    val current = queue.removeFirst()
-                    this.add(current)
-                    queue.addAll(
-                        current.getHorizontalBorder().filter {
-                            it !in this && it in perimeterCoords && it.move(dir) in coords
-                        },
-                    )
-                }
-            }
+        }.toSet()
     }
 
     private fun List<List<Char>>.getRegion(initial: Coord): Region {
@@ -125,7 +112,7 @@ class Day12(
                 )
             }
         }
-        return Region(gardenPlots, visited)
+        return Region(visited)
     }
 }
 
@@ -135,5 +122,5 @@ fun main() {
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val testInput2 = readInputAsString("src/input/$year/${name}_test2.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day12(testInput), Day12(realInput), year, extraDays = listOf(Day12(testInput2)))
+    runDay(Day12(testInput), Day12(realInput), year, extraDays = listOf(Day12(testInput2)), printTimings = true)
 }
