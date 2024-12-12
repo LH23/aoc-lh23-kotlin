@@ -27,6 +27,16 @@ data class Coord(
             add(Coord(r - 1, c)) // NORTH
             add(Coord(r + 1, c)) // SOUTH
         }
+    fun getHorizontalBorder(): List<Coord> =
+        buildList {
+            add(Coord(r, c - 1)) // WEST
+            add(Coord(r, c + 1)) // EAST
+        }
+    fun getVerticalBorder(): List<Coord> =
+        buildList {
+            add(Coord(r - 1, c)) // NORTH
+            add(Coord(r + 1, c)) // SOUTH
+        }
 
     override fun toString(): String = "($r,$c)"
 
@@ -76,6 +86,7 @@ data class Coord(
             Dir.South -> this.goUp(n)
             Dir.East -> this.goLeft(n)
         }
+
 }
 
 fun parseDir(c: Char): Dir =
