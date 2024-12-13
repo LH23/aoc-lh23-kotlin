@@ -18,36 +18,20 @@ class Day13(
         val prize: Pair<Long, Long>,
     ) {
         fun minTokensToWin(): Long? {
-            val solutions = mutableListOf<Pair<Int, Int>>()
-
-            for (n in 0..1000) {
-                for (m in 0..1000) {
-                    if (buttonA.first * n + buttonB.first * m == prize.first && buttonA.second * n + buttonB.second * m == prize.second) {
-                        solutions += Pair(n, m)
-                        break
-                    }
-                }
-            }
-            if (solutions.isEmpty()) return null
-            return solutions.minOf { it.first * 3L + it.second }
-        }
-
-        fun minTokensToWinCorrectedPrize(): Long? {
-            val (correctXp, correctYp) = prize.first + 10000000000000.0 to prize.second + 10000000000000.0
+            val (xp, yp) = prize.first.toDouble() to prize.second.toDouble()
             val (xa, ya) = buttonA.first.toDouble() to buttonA.second.toDouble()
             val (xb, yb) = buttonB.first.toDouble() to buttonB.second.toDouble()
-            val solutions = mutableListOf<Pair<Long, Long>>()
 
-            val d = (yb - xb * ya / xa)
-            val n = ((correctYp - correctXp / xa * ya) / d).roundToLong()
-            val m = ((correctXp - n * xb) / xa).roundToLong()
+            val n = ((yp - xp / xa * ya) / (yb - xb * ya / xa)).roundToLong()
+            val m = ((xp - n * xb) / xa).roundToLong()
 
-            val xp = m * xa + n * xb
-            val yp = m * ya + n * yb
-            if (n > 0 && m > 0 && xp == correctXp && yp == correctYp) solutions += Pair(m, n)
-
-            if (solutions.isEmpty()) return null
-            return solutions.minOf { it.first * 3L + it.second }
+            val cxp = m * xa + n * xb
+            val cyp = m * ya + n * yb
+            return if (n > 0 && m > 0 && cxp == xp && cyp == yp) {
+                (m * 3 + n)
+            } else {
+                null
+            }
         }
 
         companion object {
@@ -64,8 +48,15 @@ class Day13(
 
     override fun solvePart1(): Long = machines.mapNotNull { it.minTokensToWin() }.sum()
 
-    override fun solvePart2(): Long = machines.mapNotNull { it.minTokensToWinCorrectedPrize() }.sum()
+    override fun solvePart2(): Long =
+        machines
+            .mapNotNull {
+                it.copy(prize = it.prize + 10000000000000L).minTokensToWin()
+            }.sum()
+
+    private operator fun Pair<Long, Long>.plus(x: Long) = Pair(first + x, second + x)
 }
+
 
 fun main() {
     val name = Day13::class.simpleName
