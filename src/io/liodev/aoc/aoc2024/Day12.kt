@@ -9,7 +9,7 @@ import io.liodev.aoc.utils.get
 import io.liodev.aoc.utils.times
 import io.liodev.aoc.utils.validIndex
 
-// --- 2024 12
+// --- 2024 Day 12: Garden Groups ---
 class Day12(
     val input: String,
 ) : Day<Long> {
@@ -122,5 +122,5 @@ fun main() {
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val testInput2 = readInputAsString("src/input/$year/${name}_test2.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day12(testInput), Day12(realInput), year, extraDays = listOf(Day12(testInput2)), printTimings = true)
+    runDay(Day12(testInput), Day12(realInput), year, extraDays = listOf(Day12(testInput2)))
 }
