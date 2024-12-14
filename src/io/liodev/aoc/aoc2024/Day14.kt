@@ -34,12 +34,12 @@ class Day14(
         mod: Int,
     ): Int = if ((a + b) % mod < 0) ((a + b) % mod) + mod else ((a + b) % mod)
 
+    private fun testInput() = robots[0].p == Coord(4, 0)
+
     override fun solvePart1(): Int {
-        val (rows, cols) = if (robots[0].p == Coord(4, 0)) Pair(7, 11) else Pair(103, 101)
+        val (rows, cols) = if (testInput()) Pair(7, 11) else Pair(103, 101)
         val robotPositions = robots.map { it.p }.toMutableList()
-        repeat(100) {
-            moveRobots(robotPositions, rows, cols)
-        }
+        moveRobots(100, robotPositions, rows, cols)
         return calculateQuadrants(robotPositions, rows, cols).reduce { a, b -> a * b }
     }
 
@@ -47,8 +47,8 @@ class Day14(
         val (rows, cols) = if (robots[0].p == Coord(4, 0)) Pair(7, 11) else Pair(103, 101)
         val currPositions = robots.map { it.p }.toMutableList()
         repeat(10000) {
-            moveRobots(currPositions, rows, cols)
-            if (contiguousCols(currPositions.toSet(), rows, cols) > 8) {
+            moveRobots(1, currPositions, rows, cols)
+            if (maxContiguousCols(currPositions.toSet(), rows, cols) > 8) {
 //                println("\nTime: ${it + 1}s")
 //                printRobots(currPositions, rows, cols)
                 return it + 1
@@ -57,17 +57,22 @@ class Day14(
         return -1
     }
 
-    private fun moveRobots(currPositions: MutableList<Coord>, rows: Int, cols: Int) {
+    private fun moveRobots(
+        steps: Int,
+        currPositions: MutableList<Coord>,
+        rows: Int,
+        cols: Int,
+    ) {
         for ((i, robot) in robots.withIndex()) {
             currPositions[i] =
                 Coord(
-                    mod(currPositions[i].r, robot.v.r, rows),
-                    mod(currPositions[i].c, robot.v.c, cols),
+                    mod(currPositions[i].r, robot.v.r * steps, rows),
+                    mod(currPositions[i].c, robot.v.c * steps, cols),
                 )
         }
     }
 
-    private fun contiguousCols(
+    private fun maxContiguousCols(
         currPositions: Set<Coord>,
         rows: Int,
         cols: Int,
