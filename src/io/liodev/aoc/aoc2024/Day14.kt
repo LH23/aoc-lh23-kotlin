@@ -6,12 +6,11 @@ import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.Coord
 import io.liodev.aoc.utils.printMatrix
 
-// --- 2024 14
+// --- 2024 Day 14: Restroom Redoubt ---
 class Day14(
     input: String,
-) : Day<Long> {
-    // 1, 3, 4, and 1
-    override val expectedValues = listOf(12L, 228410028, 0, 8258)
+) : Day<Int> {
+    override val expectedValues = listOf(12, 228410028, -1, 8258)
 
     private val robots = input.split("\n").map { Robot.from(it) }
 
@@ -35,40 +34,37 @@ class Day14(
         mod: Int,
     ): Int = if ((a + b) % mod < 0) ((a + b) % mod) + mod else ((a + b) % mod)
 
-    override fun solvePart1(): Long {
+    override fun solvePart1(): Int {
         val (rows, cols) = if (robots[0].p == Coord(4, 0)) Pair(7, 11) else Pair(103, 101)
-        val currPositions = robots.map { it.p }.toMutableList()
-        for ((i, robot) in robots.withIndex()) {
-            repeat(100) {
-                currPositions[i] =
-                    Coord(
-                        mod(currPositions[i].r, robot.v.r, rows),
-                        mod(currPositions[i].c, robot.v.c, cols),
-                    )
-            }
+        val robotPositions = robots.map { it.p }.toMutableList()
+        repeat(100) {
+            moveRobots(robotPositions, rows, cols)
         }
-        return calculateQuadrants(currPositions, rows, cols).reduce { a, b -> a * b }.toLong()
+        return calculateQuadrants(robotPositions, rows, cols).reduce { a, b -> a * b }
     }
 
-    override fun solvePart2(): Long {
+    override fun solvePart2(): Int {
         val (rows, cols) = if (robots[0].p == Coord(4, 0)) Pair(7, 11) else Pair(103, 101)
         val currPositions = robots.map { it.p }.toMutableList()
-        val repeats = 100000
-        repeat(repeats) {
-            for ((i, robot) in robots.withIndex()) {
-                currPositions[i] =
-                    Coord(
-                        mod(currPositions[i].r, robot.v.r, rows),
-                        mod(currPositions[i].c, robot.v.c, cols),
-                    )
-            }
+        repeat(10000) {
+            moveRobots(currPositions, rows, cols)
             if (contiguousCols(currPositions.toSet(), rows, cols) > 8) {
-//                println("/n $it")
+//                println("\nTime: ${it + 1}s")
 //                printRobots(currPositions, rows, cols)
-                return (it + 1).toLong()
+                return it + 1
             }
         }
-        return 0L
+        return -1
+    }
+
+    private fun moveRobots(currPositions: MutableList<Coord>, rows: Int, cols: Int) {
+        for ((i, robot) in robots.withIndex()) {
+            currPositions[i] =
+                Coord(
+                    mod(currPositions[i].r, robot.v.r, rows),
+                    mod(currPositions[i].c, robot.v.c, cols),
+                )
+        }
     }
 
     private fun contiguousCols(
@@ -103,7 +99,7 @@ class Day14(
     }
 
     private fun calculateQuadrants(
-        currPositions: MutableList<Coord>,
+        currPositions: List<Coord>,
         rows: Int,
         cols: Int,
     ): List<Int> {
@@ -117,7 +113,6 @@ class Day14(
             if (pos.r in rows / 2 + 1..rows && pos.c in 0..<cols / 2) q3++
             if (pos.r in rows / 2 + 1..rows && pos.c in cols / 2 + 1..cols) q4++
         }
-        // println("q1 = $q1, q2 = $q2, q3 = $q3, q4 = $q4")
         return listOf(q1, q2, q3, q4)
     }
 }
