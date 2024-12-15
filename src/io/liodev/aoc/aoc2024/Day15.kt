@@ -7,10 +7,9 @@ import io.liodev.aoc.utils.Coord
 import io.liodev.aoc.utils.Dir
 import io.liodev.aoc.utils.findFirstOrNull
 import io.liodev.aoc.utils.get
-import io.liodev.aoc.utils.printMatrix
 import io.liodev.aoc.utils.set
 
-// --- 2024 15
+// --- 2024 Day 15: Warehouse Woes ---
 class Day15(
     input: String,
 ) : Day<Int> {
@@ -44,51 +43,54 @@ class Day15(
         val mExpWarehouse = warehouse.indices.map { i -> warehouse[i].expand() }
         var robotPos = mExpWarehouse.findFirstOrNull('@')!!
         for (step in moves) {
-            robotPos = moveAttemptExpanded(mExpWarehouse, robotPos, step)
+            robotPos = moveAttempt(mExpWarehouse, robotPos, step)
         }
 //        println("final map:")
 //        mExpWarehouse.printMatrix()
         return gpsCoordSum(mExpWarehouse)
     }
 
-    private fun moveAttemptExpanded(
-        mwarehouse: List<MutableList<Char>>,
+    private fun moveAttempt(
+        wh: List<MutableList<Char>>,
         robotPos: Coord,
         dir: Dir,
     ): Coord =
-        if (mwarehouse[robotPos.move(dir)] == '.') {
-            mwarehouse[robotPos] = '.'
-            mwarehouse[robotPos.move(dir)] = '@'
+        if (wh[robotPos.move(dir)] == '.') {
+            wh[robotPos] = '.'
+            wh[robotPos.move(dir)] = '@'
             robotPos.move(dir)
-        } else if (mwarehouse[robotPos.move(dir)] == '#') {
+        } else if (wh[robotPos.move(dir)] == '#') {
             robotPos
+        } else if (wh[robotPos.move(dir)] == 'O') {
+            var newPos = robotPos.move(dir)
+            while (wh[newPos] == 'O') {
+                newPos = newPos.move(dir)
+            }
+            if (wh[newPos] == '.') {
+                wh[newPos] = 'O'
+                wh[robotPos] = '.'
+                wh[robotPos.move(dir)] = '@'
+                robotPos.move(dir)
+            } else { // new pos #
+                robotPos
+            }
         } else { // [ or ]
             if (dir in listOf(Dir.West, Dir.East)) {
-                moveHorizontally(mwarehouse, robotPos, dir)
+                moveHorizontally(wh, robotPos, dir)
             } else {
-                moveVertically(mwarehouse, robotPos, dir)
+                moveVertically(wh, robotPos, dir)
             }
         }
 
     private fun moveVertically(
-        mwarehouse: List<MutableList<Char>>,
+        wh: List<MutableList<Char>>,
         robotPos: Coord,
         dir: Dir,
     ): Coord {
         val newPos = robotPos.move(dir)
-        val canMove =
-            if (mwarehouse[newPos] == ']') {
-                checkCanMove(
-                    mwarehouse,
-                    listOf(newPos.move(Dir.West), newPos),
-                    dir,
-                )
-            } else {
-                checkCanMove(mwarehouse, listOf(newPos, newPos.move(Dir.East)), dir)
-            }
-
-        return if (canMove) {
-            move(mwarehouse, robotPos, dir)
+        val otherSideOfTheBox = if (wh[newPos] == ']') newPos.move(Dir.West) else newPos.move(Dir.East)
+        return if (checkCanMove(wh, listOf(newPos, otherSideOfTheBox), dir)) {
+            move(wh, robotPos, dir)
             robotPos.move(dir)
         } else {
             robotPos
@@ -96,109 +98,80 @@ class Day15(
     }
 
     private fun move(
-        mwarehouse: List<MutableList<Char>>,
+        wh: List<MutableList<Char>>,
         pos: Coord,
         dir: Dir,
     ) {
-        if (mwarehouse[pos] == '@') {
-            move(mwarehouse, pos.move(dir), dir)
-            mwarehouse[pos.move(dir)] = '@'
-            if (mwarehouse[pos.move(dir).move(Dir.West)] == '[') mwarehouse[pos.move(dir).move(Dir.West)] = '.'
-            if (mwarehouse[pos.move(dir).move(Dir.East)] == ']') mwarehouse[pos.move(dir).move(Dir.East)] = '.'
-            mwarehouse[pos] = '.'
-        } else if (mwarehouse[pos] == '[') {
-            move(mwarehouse, pos.move(dir), dir)
-            move(mwarehouse, pos.move(dir).move(Dir.East), dir)
-            mwarehouse[pos] = '.'
-            mwarehouse[pos.move(Dir.East)] = '.'
-            mwarehouse[pos.move(dir)] = '['
-            mwarehouse[pos.move(dir).move(Dir.East)] = ']'
-        } else if (mwarehouse[pos] == ']') {
-            move(mwarehouse, pos.move(dir), dir)
-            move(mwarehouse, pos.move(dir).move(Dir.West), dir)
-            mwarehouse[pos] = '.'
-            mwarehouse[pos.move(Dir.West)] = '.'
-            mwarehouse[pos.move(dir)] = ']'
-            mwarehouse[pos.move(dir).move(Dir.West)] = '['
+        if (wh[pos] == '@') {
+            move(wh, pos.move(dir), dir)
+            wh[pos.move(dir)] = '@'
+            if (wh[pos.move(dir).move(Dir.West)] == '[') wh[pos.move(dir).move(Dir.West)] = '.'
+            if (wh[pos.move(dir).move(Dir.East)] == ']') wh[pos.move(dir).move(Dir.East)] = '.'
+            wh[pos] = '.'
+        } else if (wh[pos] == '[') {
+            move(wh, pos.move(dir), dir)
+            move(wh, pos.move(dir).move(Dir.East), dir)
+            wh[pos.move(Dir.East)] = '.'
+            wh[pos.move(dir)] = '['
+            wh[pos.move(dir).move(Dir.East)] = ']'
+        } else if (wh[pos] == ']') {
+            move(wh, pos.move(dir), dir)
+            move(wh, pos.move(dir).move(Dir.West), dir)
+            wh[pos.move(Dir.West)] = '.'
+            wh[pos.move(dir)] = ']'
+            wh[pos.move(dir).move(Dir.West)] = '['
         }
     }
 
     private fun checkCanMove(
-        mwarehouse: List<List<Char>>,
+        wh: List<List<Char>>,
         places: List<Coord>,
         dir: Dir,
     ): Boolean =
-        if (places.map { mwarehouse[it.move(dir)] }.any { it == '#' }) {
+        if (places.map { wh[it.move(dir)] }.any { it == '#' }) {
             false
-        } else if (places.map { mwarehouse[it.move(dir)] }.all { it == '.' }) {
+        } else if (places.map { wh[it.move(dir)] }.all { it == '.' }) {
             true
         } else {
             val newPlaces = mutableListOf<Coord>()
             for (place in places) {
-                if (mwarehouse[place.move(dir)] == ']') {
+                if (wh[place.move(dir)] == ']') {
                     newPlaces.add(place.move(dir))
                     newPlaces.add(
                         place.move(dir).move(Dir.West),
                     )
                 }
-                if (mwarehouse[place.move(dir)] == '[') {
+                if (wh[place.move(dir)] == '[') {
                     newPlaces.add(place.move(dir))
                     newPlaces.add(
                         place.move(dir).move(Dir.East),
                     )
                 }
             }
-            checkCanMove(mwarehouse, newPlaces, dir)
+            checkCanMove(wh, newPlaces, dir)
         }
 
     private fun moveHorizontally(
-        mwarehouse: List<MutableList<Char>>,
+        wh: List<MutableList<Char>>,
         robotPos: Coord,
         dir: Dir,
     ): Coord {
         var newPos = robotPos.move(dir)
-        while (mwarehouse[newPos] in listOf('[', ']')) {
+        while (wh[newPos] in listOf('[', ']')) {
             newPos = newPos.move(dir)
         }
-        if (mwarehouse[newPos] == '.') {
-            mwarehouse[robotPos] = '.'
-            mwarehouse[robotPos.move(dir)] = '@'
+        if (wh[newPos] == '.') {
+            wh[robotPos] = '.'
+            wh[robotPos.move(dir)] = '@'
             var tmp = robotPos.move(dir, 2)
             while (tmp != newPos) {
-                mwarehouse[tmp] = if (mwarehouse[tmp] == '[') ']' else '['
+                wh[tmp] = if (wh[tmp] == '[') ']' else '['
                 tmp = tmp.move(dir)
             }
-            mwarehouse[newPos] = if (dir == Dir.West) '[' else ']'
+            wh[newPos] = if (dir == Dir.West) '[' else ']'
             return robotPos.move(dir)
         } else { // new pos #
             return robotPos
-        }
-    }
-
-    private fun moveAttempt(
-        mwarehouse: List<MutableList<Char>>,
-        robotPos: Coord,
-        dir: Dir,
-    ): Coord {
-        if (mwarehouse[robotPos.move(dir)] == '.') {
-            mwarehouse[robotPos] = '.'
-            mwarehouse[robotPos.move(dir)] = '@'
-            return robotPos.move(dir)
-        } else if (mwarehouse[robotPos.move(dir)] == '#') {
-            return robotPos
-        } else { // O
-            var newPos = robotPos.move(dir)
-            while (mwarehouse[newPos] == 'O') {
-                newPos = newPos.move(dir)
-            }
-            if (mwarehouse[newPos] == '.') {
-                mwarehouse[newPos] = 'O'
-                mwarehouse[robotPos] = '.'
-                mwarehouse[robotPos.move(dir)] = '@'
-                return robotPos.move(dir)
-            } else { // new pos #
-                return robotPos
-            }
         }
     }
 
