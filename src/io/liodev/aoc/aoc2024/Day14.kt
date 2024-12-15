@@ -28,11 +28,7 @@ class Day14(
         }
     }
 
-    private fun mod(
-        a: Int,
-        b: Int,
-        mod: Int,
-    ): Int = if ((a + b) % mod < 0) ((a + b) % mod) + mod else ((a + b) % mod)
+    private fun mod(a: Int, mod: Int) = (a % mod + mod) % mod
 
     private fun testInput() = robots[0].p == Coord(4, 0)
 
@@ -66,8 +62,8 @@ class Day14(
         for ((i, robot) in robots.withIndex()) {
             currPositions[i] =
                 Coord(
-                    mod(currPositions[i].r, robot.v.r * steps, rows),
-                    mod(currPositions[i].c, robot.v.c * steps, cols),
+                    mod(currPositions[i].r + robot.v.r * steps, rows),
+                    mod(currPositions[i].c + robot.v.c * steps, cols),
                 )
         }
     }
