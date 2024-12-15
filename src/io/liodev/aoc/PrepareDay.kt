@@ -45,7 +45,7 @@ fun prepareDay(
 
 @Suppress("KotlinConstantConditions")
 fun main() {
-    val day = 14
+    val day = 15
     val year = 2024
 
     if (year in 2015..2030 && day in 1..25) {
