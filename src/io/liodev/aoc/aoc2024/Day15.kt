@@ -5,6 +5,7 @@ import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.Coord
 import io.liodev.aoc.utils.Dir
+import io.liodev.aoc.utils.findAll
 import io.liodev.aoc.utils.findFirstOrNull
 import io.liodev.aoc.utils.get
 import io.liodev.aoc.utils.set
@@ -36,7 +37,7 @@ class Day15(
         for (step in moves) {
             robotPos = moveAttempt(mwarehouse, robotPos, step)
         }
-        return gpsCoordSum(mwarehouse)
+        return mwarehouse.findAll('O').sumOf { box -> box.r * 100 + box.c }
     }
 
     override fun solvePart2(): Int {
@@ -47,7 +48,7 @@ class Day15(
         }
 //        println("final map:")
 //        mExpWarehouse.printMatrix()
-        return gpsCoordSum(mExpWarehouse)
+        return mExpWarehouse.findAll('[').sumOf { box -> box.r * 100 + box.c }
     }
 
     private fun moveAttempt(
@@ -82,6 +83,30 @@ class Day15(
             }
         }
 
+    private fun moveHorizontally(
+        wh: List<MutableList<Char>>,
+        robotPos: Coord,
+        dir: Dir,
+    ): Coord {
+        var newPos = robotPos.move(dir)
+        while (wh[newPos] in listOf('[', ']')) {
+            newPos = newPos.move(dir)
+        }
+        if (wh[newPos] == '.') {
+            wh[robotPos] = '.'
+            wh[robotPos.move(dir)] = '@'
+            var tmp = robotPos.move(dir, 2)
+            while (tmp != newPos) {
+                wh[tmp] = if (wh[tmp] == '[') ']' else '['
+                tmp = tmp.move(dir)
+            }
+            wh[newPos] = if (dir == Dir.West) '[' else ']'
+            return robotPos.move(dir)
+        } else { // new pos #
+            return robotPos
+        }
+    }
+
     private fun moveVertically(
         wh: List<MutableList<Char>>,
         robotPos: Coord,
@@ -94,32 +119,6 @@ class Day15(
             robotPos.move(dir)
         } else {
             robotPos
-        }
-    }
-
-    private fun move(
-        wh: List<MutableList<Char>>,
-        pos: Coord,
-        dir: Dir,
-    ) {
-        if (wh[pos] == '@') {
-            move(wh, pos.move(dir), dir)
-            wh[pos.move(dir)] = '@'
-            if (wh[pos.move(dir).move(Dir.West)] == '[') wh[pos.move(dir).move(Dir.West)] = '.'
-            if (wh[pos.move(dir).move(Dir.East)] == ']') wh[pos.move(dir).move(Dir.East)] = '.'
-            wh[pos] = '.'
-        } else if (wh[pos] == '[') {
-            move(wh, pos.move(dir), dir)
-            move(wh, pos.move(dir).move(Dir.East), dir)
-            wh[pos.move(Dir.East)] = '.'
-            wh[pos.move(dir)] = '['
-            wh[pos.move(dir).move(Dir.East)] = ']'
-        } else if (wh[pos] == ']') {
-            move(wh, pos.move(dir), dir)
-            move(wh, pos.move(dir).move(Dir.West), dir)
-            wh[pos.move(Dir.West)] = '.'
-            wh[pos.move(dir)] = ']'
-            wh[pos.move(dir).move(Dir.West)] = '['
         }
     }
 
@@ -151,36 +150,31 @@ class Day15(
             checkCanMove(wh, newPlaces, dir)
         }
 
-    private fun moveHorizontally(
+    private fun move(
         wh: List<MutableList<Char>>,
-        robotPos: Coord,
+        pos: Coord,
         dir: Dir,
-    ): Coord {
-        var newPos = robotPos.move(dir)
-        while (wh[newPos] in listOf('[', ']')) {
-            newPos = newPos.move(dir)
-        }
-        if (wh[newPos] == '.') {
-            wh[robotPos] = '.'
-            wh[robotPos.move(dir)] = '@'
-            var tmp = robotPos.move(dir, 2)
-            while (tmp != newPos) {
-                wh[tmp] = if (wh[tmp] == '[') ']' else '['
-                tmp = tmp.move(dir)
-            }
-            wh[newPos] = if (dir == Dir.West) '[' else ']'
-            return robotPos.move(dir)
-        } else { // new pos #
-            return robotPos
+    ) {
+        if (wh[pos] == '@') {
+            move(wh, pos.move(dir), dir)
+            wh[pos.move(dir)] = '@'
+            if (wh[pos.move(dir).move(Dir.West)] == '[') wh[pos.move(dir).move(Dir.West)] = '.'
+            if (wh[pos.move(dir).move(Dir.East)] == ']') wh[pos.move(dir).move(Dir.East)] = '.'
+            wh[pos] = '.'
+        } else if (wh[pos] == '[') {
+            move(wh, pos.move(dir), dir)
+            move(wh, pos.move(dir).move(Dir.East), dir)
+            wh[pos.move(Dir.East)] = '.'
+            wh[pos.move(dir)] = '['
+            wh[pos.move(dir).move(Dir.East)] = ']'
+        } else if (wh[pos] == ']') {
+            move(wh, pos.move(dir), dir)
+            move(wh, pos.move(dir).move(Dir.West), dir)
+            wh[pos.move(Dir.West)] = '.'
+            wh[pos.move(dir)] = ']'
+            wh[pos.move(dir).move(Dir.West)] = '['
         }
     }
-
-    private fun gpsCoordSum(map: List<List<Char>>): Int =
-        map.indices.sumOf { r ->
-            map[0].indices.sumOf { c ->
-                if (map[r][c] == 'O' || map[r][c] == '[') r * 100 + c else 0
-            }
-        }
 }
 
 private fun List<Char>.expand(): MutableList<Char> =
