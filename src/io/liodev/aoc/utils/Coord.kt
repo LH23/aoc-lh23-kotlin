@@ -98,6 +98,18 @@ fun parseDir(c: Char): Dir =
         else -> throw IllegalArgumentException("Unknown dir: $c")
     }
 
+fun dirFromTo(
+    current: Coord,
+    next: Coord,
+): Dir =
+    when (next) {
+        current.move(Dir.North) -> Dir.North
+        current.move(Dir.South) -> Dir.South
+        current.move(Dir.East) -> Dir.East
+        current.move(Dir.West) -> Dir.West
+        else -> throw IllegalArgumentException("Not neighbouring coords")
+    }
+
 enum class Dir {
     North,
     West,
