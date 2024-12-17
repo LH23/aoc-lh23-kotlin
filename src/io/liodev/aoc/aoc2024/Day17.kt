@@ -8,7 +8,8 @@ import io.liodev.aoc.runDay
 class Day17(
     input: String,
 ) : Day<String> {
-    override val expectedValues = listOf("5,7,3,0", "6,2,7,2,3,1,6,0,5", "117440", "236548287712877")
+    override val expectedValues =
+        listOf("5,7,3,0", "6,2,7,2,3,1,6,0,5", "117440", "236548287712877")
 
     private val initRegisters =
         input.split("\n\n")[0].lines().map { it.substringAfter(": ").toInt() }
@@ -20,6 +21,8 @@ class Day17(
             .map { it.toInt() }
 
     override fun solvePart1(): String = runProgram(initRegisters.map { it.toLong() }).joinToString(",")
+
+    override fun solvePart2(): String = findReverseRecursive("", program, 1)!!
 
     private fun runProgram(registers: List<Long>): List<Int> {
         val output = mutableListOf<Int>()
@@ -42,8 +45,6 @@ class Day17(
         return output
     }
 
-    override fun solvePart2(): String = findReverseRecursive("", program, 1)!!
-
     private fun findReverseRecursive(
         result: String,
         program: List<Int>,
@@ -56,7 +57,7 @@ class Day17(
                 runProgram(listOf(newRegA, initRegisters[1].toLong(), initRegisters[2].toLong()))
             if (output == program) {
                 return "$newRegA"
-            } else if (n < program.size && output.takeLast(n) == program.takeLast(n)) {
+            } else if (output.takeLast(n) == program.takeLast(n)) {
                 (findReverseRecursive(result + o, program, n + 1))?.let { return it }
             }
         }
