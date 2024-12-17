@@ -17,11 +17,7 @@ class Day16(
     override val expectedValues = listOf(11048, 101492, 64, 543)
     private val maze = input.split("\n").map { it.toList() }
 
-    override fun solvePart1(): Int {
-        val s = maze.findFirstOrNull('S')!!
-        val e = maze.findFirstOrNull('E')!!
-        return calculateMinScore(s, e)
-    }
+    override fun solvePart1() = calculateMinScore(maze.findFirstOrNull('S')!!, maze.findFirstOrNull('E')!!)
 
     override fun solvePart2(): Int {
         val s = maze.findFirstOrNull('S')!!
@@ -77,6 +73,7 @@ class Day16(
         return bestSeats.size
     }
 
+    // Dijkstra (ie A* without heuristic)
     private fun calculateMinScore(
         start: Coord,
         end: Coord,
@@ -84,8 +81,11 @@ class Day16(
         val openSet = PriorityQueue<Pair<ReindeerPos, Int>>(compareBy { it.second })
         openSet.add(ReindeerPos(start, Dir.East) to 0)
         val bestScore = mutableMapOf(ReindeerPos(start, Dir.East) to 0)
+        val visited = mutableSetOf<ReindeerPos>()
+
         while (openSet.isNotEmpty()) {
             val (reindeer, score) = openSet.poll()
+            visited += reindeer
             if (reindeer.coord == end) {
                 return score
             }
@@ -96,7 +96,7 @@ class Day16(
                 val nextDir = dirFromTo(reindeer.coord, next)
                 val tentativeScore = bestScore[reindeer]!! + if (reindeer.dir == nextDir) 1 else 1001
                 val nextPos = ReindeerPos(next, nextDir)
-                if (tentativeScore < bestScore.getOrDefault(nextPos, Int.MAX_VALUE)) {
+                if (nextPos !in visited && tentativeScore < bestScore.getOrDefault(nextPos, Int.MAX_VALUE)) {
                     bestScore[nextPos] = tentativeScore
                     openSet.offer(nextPos to tentativeScore)
                 }
