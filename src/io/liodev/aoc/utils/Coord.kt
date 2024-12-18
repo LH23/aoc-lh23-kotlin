@@ -42,10 +42,10 @@ data class Coord(
 
     fun <E> validIndex(array: List<List<E>>): Boolean = validIndex(array[0].size, array.size)
 
-    private fun validIndex(
+    fun validIndex(
         w: Int,
         h: Int,
-    ) = r in 0 until h && c in 0 until w
+    ) = r in 0..<h && c in 0..<w
 
     operator fun plus(other: Coord): Coord = Coord(this.r + other.r, this.c + other.c)
 
