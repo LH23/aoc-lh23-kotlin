@@ -13,16 +13,13 @@ class Day19(
     private val designs = input.split("\n\n")[0].split(", ").sortedByDescending { it.length }
     private val requestedTowels = input.split("\n\n")[1].lines()
 
-    private val canBeArranged = mutableMapOf<String, Boolean>()
-    private val cantBeArranged = mutableMapOf<String, Boolean>()
     private val arrangementsCount = mutableMapOf<String, Long>()
 
-    override fun solvePart1(): Long = requestedTowels.count { possibleToArrange(it) }.toLong()
+    override fun solvePart1(): Long = requestedTowels.count { possibleWaysToArrange(it) != 0L }.toLong()
 
     override fun solvePart2(): Long = requestedTowels.sumOf { possibleWaysToArrange(it) }
 
     private fun possibleWaysToArrange(pattern: String): Long {
-        if (cantBeArranged.getOrDefault(pattern, false)) return 0
         if (arrangementsCount.getOrDefault(pattern, -1L) != -1L) {
             return arrangementsCount[pattern]!!
         }
@@ -36,24 +33,6 @@ class Day19(
         }
         arrangementsCount[pattern] = count
         return count
-    }
-
-    private fun possibleToArrange(pattern: String): Boolean {
-        if (canBeArranged.getOrDefault(pattern, false)) return true
-        if (cantBeArranged.getOrDefault(pattern, false)) return false
-        for (d in designs) {
-            if (d == pattern) {
-                canBeArranged[pattern] = true
-                return true
-            } else if (pattern.startsWith(d)) {
-                if (possibleToArrange(pattern.substringAfter(d))) {
-                    canBeArranged[pattern] = true
-                    return true
-                }
-            }
-        }
-        cantBeArranged[pattern] = true
-        return false
     }
 }
 
