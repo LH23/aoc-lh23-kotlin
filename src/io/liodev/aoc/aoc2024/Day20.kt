@@ -4,7 +4,6 @@ import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.Coord
-import io.liodev.aoc.utils.Dir
 import io.liodev.aoc.utils.findFirstOrNull
 import io.liodev.aoc.utils.get
 import java.util.PriorityQueue
@@ -19,33 +18,32 @@ class Day20(
 
     override fun solvePart1(): Int {
         val path = findBestPath(racetrack.findFirstOrNull('S')!!, racetrack.findFirstOrNull('E')!!)
-        val saveAtLeast = if (path.size == 85) 1 else 100
+        val saveAtLeast = if (testInput(path)) 1 else 100
         return findCheats(path, 2, saveAtLeast).size
     }
 
     override fun solvePart2(): Int {
         val path = findBestPath(racetrack.findFirstOrNull('S')!!, racetrack.findFirstOrNull('E')!!)
-        val saveAtLeast = if (path.size == 85) 50 else 100
+        val saveAtLeast = if (testInput(path)) 50 else 100
         return findCheats(path, 20, saveAtLeast).size
     }
+
+    private fun testInput(path: List<Coord>) = path.size == 85
 
     private fun findCheats(
         path: List<Coord>,
         cheatDistance: Int,
         saveAtLeast: Int,
-    ): Set<Pair<Coord, Coord>> {
-        val cheats = mutableSetOf<Pair<Coord, Coord>>()
-        for ((n, start) in path.withIndex()) {
-            for (cheatEndPosition in getAllEndPositions(start, cheatDistance, path.drop(n + cheatDistance + 2))) {
-                val cheatTrackSize =
-                    n + start.manhattanDistance(cheatEndPosition) + (path.size - path.indexOf(cheatEndPosition))
-                if (path.size - cheatTrackSize >= saveAtLeast) {
-                    cheats.add(Pair(start, cheatEndPosition))
-                }
+    ): List<Pair<Coord, Coord>> =
+        path
+            .flatMapIndexed { n, start ->
+                getAllEndPositions(start, cheatDistance, path.drop(n + saveAtLeast + 2))
+                    .map { start to it }
+                    .filter { (start, end) ->
+                        val cheatPathSize = n + start.manhattanDistance(end) + (path.size - path.indexOf(end))
+                        path.size - cheatPathSize >= saveAtLeast
+                    }
             }
-        }
-        return cheats
-    }
 
     private fun getAllEndPositions(
         pos: Coord,
