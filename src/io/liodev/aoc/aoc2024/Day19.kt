@@ -10,8 +10,8 @@ class Day19(
 ) : Day<Long> {
     override val expectedValues = listOf(6L, 322, 16, 715514563508258)
 
-    private val designs = input.split("\n\n")[0].split(", ").sortedByDescending { it.length }
-    private val requestedTowels = input.split("\n\n")[1].lines()
+    private val designs = input.substringBefore("\n").split(", ").sortedByDescending { it.length }
+    private val requestedTowels = input.lines().drop(2)
 
     private val arrangementsCount = mutableMapOf<String, Long>()
 
@@ -19,21 +19,16 @@ class Day19(
 
     override fun solvePart2(): Long = requestedTowels.sumOf { possibleWaysToArrange(it) }
 
-    private fun possibleWaysToArrange(pattern: String): Long {
-        if (arrangementsCount.getOrDefault(pattern, -1L) != -1L) {
-            return arrangementsCount[pattern]!!
-        }
-        var count = 0L
-        for (d in designs) {
-            if (d == pattern) {
-                count++
-            } else if (pattern.startsWith(d)) {
-                count += possibleWaysToArrange(pattern.substringAfter(d))
+    private fun possibleWaysToArrange(pattern: String): Long =
+        arrangementsCount.getOrPut(pattern) {
+            designs.sumOf { design ->
+                when {
+                    design == pattern -> 1L
+                    pattern.startsWith(design) -> possibleWaysToArrange(pattern.substringAfter(design))
+                    else -> 0L
+                }
             }
         }
-        arrangementsCount[pattern] = count
-        return count
-    }
 }
 
 fun main() {
@@ -41,5 +36,5 @@ fun main() {
     val year = 2024
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day19(testInput), Day19(realInput), year)
+    runDay(Day19(testInput), Day19(realInput), year, printTimings = true)
 }
