@@ -27,11 +27,13 @@ data class Coord(
             add(Coord(r - 1, c)) // NORTH
             add(Coord(r + 1, c)) // SOUTH
         }
+
     fun getHorizontalBorder(): List<Coord> =
         buildList {
             add(Coord(r, c - 1)) // WEST
             add(Coord(r, c + 1)) // EAST
         }
+
     fun getVerticalBorder(): List<Coord> =
         buildList {
             add(Coord(r - 1, c)) // NORTH
@@ -87,6 +89,7 @@ data class Coord(
             Dir.East -> this.goLeft(n)
         }
 
+    fun manhattanDistance(other: Coord): Int = abs(this.r - other.r) + abs(this.c - other.c)
 }
 
 fun parseDir(c: Char): Dir =
