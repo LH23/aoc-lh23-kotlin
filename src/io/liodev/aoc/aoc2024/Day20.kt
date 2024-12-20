@@ -7,7 +7,6 @@ import io.liodev.aoc.utils.Coord
 import io.liodev.aoc.utils.Dir
 import io.liodev.aoc.utils.findFirstOrNull
 import io.liodev.aoc.utils.get
-import io.liodev.aoc.utils.printMatrix
 import java.util.PriorityQueue
 
 // --- 2024 Day 20: Race Condition ---
@@ -18,71 +17,41 @@ class Day20(
 
     private val racetrack = input.split("\n").map { it.toList() }
 
-    private val cardinalBorderDirs = listOf(Dir.West, Dir.East, Dir.North, Dir.South)
-
     override fun solvePart1(): Int {
         val path = findBestPath(racetrack.findFirstOrNull('S')!!, racetrack.findFirstOrNull('E')!!)
         val saveAtLeast = if (path.size == 85) 1 else 100
-        return findCheats(path, saveAtLeast).size
+        return findCheats(path, 2, saveAtLeast).size
     }
 
     override fun solvePart2(): Int {
         val path = findBestPath(racetrack.findFirstOrNull('S')!!, racetrack.findFirstOrNull('E')!!)
         val saveAtLeast = if (path.size == 85) 50 else 100
-        return findNewRuleCheats(path, saveAtLeast).size
+        return findCheats(path, 20, saveAtLeast).size
     }
-
-    private fun findNewRuleCheats(
-        path: List<Coord>,
-        saveAtLeast: Int,
-    ): Set<Pair<Coord, Coord>> {
-        val cheats = mutableSetOf<Pair<Coord, Coord>>()
-        for ((n, pos) in path.withIndex()) {
-            for (cheatEndPosition in getAllEndPosition(pos, path.drop(n + 18))) {
-                val cheatTrackSize = n + pos.manhattanDistance(cheatEndPosition) + (path.size - path.indexOfFirst { it == cheatEndPosition })
-                if (path.size - cheatTrackSize >= saveAtLeast) {
-                    //println("Found new rule cheat $pos>$cheatEndPosition, saving ${path.size - cheatTrack.size}")
-                    cheats.add(Pair(pos, cheatEndPosition))
-                }
-            }
-        }
-        return cheats
-    }
-
-    private fun getAllEndPosition(
-        pos: Coord,
-        trackLeft: List<Coord>,
-    ): List<Coord> = trackLeft.filter { it.manhattanDistance(pos) <= 20 }
 
     private fun findCheats(
         path: List<Coord>,
+        cheatDistance: Int,
         saveAtLeast: Int,
     ): Set<Pair<Coord, Coord>> {
         val cheats = mutableSetOf<Pair<Coord, Coord>>()
-        for ((n, pos) in path.withIndex()) {
-            for (dir in cardinalBorderDirs) {
-                val cheatStartPosition = pos.move(dir)
-                for (dir2 in cardinalBorderDirs) {
-                    val cheatEndPosition = cheatStartPosition.move(dir2)
-                    if (cheatEndPosition != pos &&
-                        cheatEndPosition.validIndex(racetrack) &&
-                        cheatStartPosition !in path &&
-                        cheatEndPosition in path.drop(n + 1)
-                    ) {
-                        val cheatTrack =
-                            path.takeWhile { it != pos } +
-                                listOf(cheatStartPosition, cheatEndPosition) +
-                                path.dropWhile { it != cheatEndPosition }
-                        if (path.size - cheatTrack.size >= saveAtLeast) {
-                            // println("Found cheat $pos>$cheatStartPosition>$cheatEndPosition, saving ${path.size - cheatTrack.size}")
-                            cheats.add(Pair(cheatStartPosition, cheatEndPosition))
-                        }
-                    }
+        for ((n, start) in path.withIndex()) {
+            for (cheatEndPosition in getAllEndPositions(start, cheatDistance, path.drop(n + cheatDistance + 2))) {
+                val cheatTrackSize =
+                    n + start.manhattanDistance(cheatEndPosition) + (path.size - path.indexOf(cheatEndPosition))
+                if (path.size - cheatTrackSize >= saveAtLeast) {
+                    cheats.add(Pair(start, cheatEndPosition))
                 }
             }
         }
         return cheats
     }
+
+    private fun getAllEndPositions(
+        pos: Coord,
+        cheatDistance: Int,
+        trackLeft: List<Coord>,
+    ): List<Coord> = trackLeft.filter { it.manhattanDistance(pos) <= cheatDistance }
 
     private fun findBestPath(
         start: Coord,
@@ -126,5 +95,5 @@ fun main() {
     val year = 2024
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day20(testInput), Day20(realInput), year)
+    runDay(Day20(testInput), Day20(realInput), year, printTimings = true, benchmark = false)
 }
