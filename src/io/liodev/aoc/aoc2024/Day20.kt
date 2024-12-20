@@ -19,36 +19,57 @@ class Day20(
     override fun solvePart1(): Int {
         val path = findBestPath(racetrack.findFirstOrNull('S')!!, racetrack.findFirstOrNull('E')!!)
         val saveAtLeast = if (testInput(path)) 1 else 100
-        return findCheats(path, 2, saveAtLeast).size
+        val (positions, endPositions) = precalculateMaps(path, 2, saveAtLeast)
+
+        return findCheats(path, saveAtLeast, positions, endPositions).size
     }
 
     override fun solvePart2(): Int {
         val path = findBestPath(racetrack.findFirstOrNull('S')!!, racetrack.findFirstOrNull('E')!!)
         val saveAtLeast = if (testInput(path)) 50 else 100
-        return findCheats(path, 20, saveAtLeast).size
+        val (positions, endPositions) = precalculateMaps(path, 20, saveAtLeast)
+        return findCheats(path, saveAtLeast, positions, endPositions).size
     }
 
     private fun testInput(path: List<Coord>) = path.size == 85
 
     private fun findCheats(
         path: List<Coord>,
-        cheatDistance: Int,
         saveAtLeast: Int,
+        positions: Map<Coord, Int>,
+        endPositions: Map<Coord, List<Coord>>,
     ): List<Pair<Coord, Coord>> =
         path
             .flatMapIndexed { n, start ->
-                getAllEndPositions(start, cheatDistance, path.drop(n + saveAtLeast + 2))
+                endPositions[start]!!
                     .map { start to it }
                     .filter { (start, end) ->
-                        val cheatPathSize = n + start.manhattanDistance(end) + (path.size - path.indexOf(end))
+                        val cheatPathSize = n + start.manhattanDistance(end) + (path.size - positions[end]!!)
                         path.size - cheatPathSize >= saveAtLeast
                     }
             }
 
+    private fun precalculateMaps(
+        path: List<Coord>,
+        cheatDistance: Int,
+        saveAtLeast: Int,
+    ): Pair<Map<Coord, Int>, Map<Coord, List<Coord>>> {
+        val positions = mutableMapOf<Coord, Int>()
+        val endPositions = mutableMapOf<Coord, List<Coord>>()
+
+        val trackLeft = path.drop(saveAtLeast.coerceAtMost(path.lastIndex)).toMutableSet()
+        for ((n, coord) in path.withIndex()) {
+            positions[coord] = n
+            trackLeft.remove(path[(n + saveAtLeast + 1).coerceAtMost(path.lastIndex)])
+            endPositions[coord] = getAllEndPositions(coord, cheatDistance, trackLeft)
+        }
+        return positions to endPositions
+    }
+
     private fun getAllEndPositions(
         pos: Coord,
         cheatDistance: Int,
-        trackLeft: List<Coord>,
+        trackLeft: Set<Coord>,
     ): List<Coord> = trackLeft.filter { it.manhattanDistance(pos) <= cheatDistance }
 
     private fun findBestPath(
@@ -93,5 +114,5 @@ fun main() {
     val year = 2024
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day20(testInput), Day20(realInput), year, printTimings = true, benchmark = false)
+    runDay(Day20(testInput), Day20(realInput), year, printTimings = true)
 }
