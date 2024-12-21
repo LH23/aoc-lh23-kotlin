@@ -32,9 +32,7 @@ class Day21(
         return code.sumOf { c ->
             val options = movesKeypad(prev, c)
             prev = c
-            options.minOf { o ->
-                moveRobotDpadRec(o, depth, 1)
-            }
+            options.minOf { o -> moveRobotDpadRec(o, depth, 1) }
         }
     }
 
@@ -51,35 +49,10 @@ class Day21(
                 code.sumOf { c ->
                     val options = movesDpad(prev, c)
                     prev = c
-                    options.minOf { o ->
-                        moveRobotDpadRec(o, depth, level + 1)
-                    }
+                    options.minOf { o -> moveRobotDpadRec(o, depth, level + 1) }
                 }
             }
         }
-
-    // UNUSED
-    private fun moveRobotKeypadLength(
-        code: String,
-        n: Int,
-    ): Long {
-        var currentPos = 'A'
-        var length = 0L
-        for (c in code) {
-            val options = movesKeypad(currentPos, c)
-            val optionsSize = mutableListOf<Int>()
-            for (o in options) {
-                var codes = listOf(o)
-                repeat(n) {
-                    codes = listOf(moveRobotDpad(codes))
-                }
-                optionsSize.add(codes[0].length)
-            }
-            length += optionsSize.min()
-            currentPos = c
-        }
-        return length
-    }
 
     private fun rowKpad(c: Char): Int =
         when (c) {
@@ -103,24 +76,12 @@ class Day21(
         dest: Char,
     ): List<String> {
         return when {
-            (currentPos == dest) -> listOf("A")
-            (rowKpad(currentPos) == rowKpad(dest)) ->
-                listOf(
-                    moveHorizontallyKpad(
-                        currentPos,
-                        dest,
-                    ) + "A",
-                )
-
+            currentPos == dest -> listOf("A")
+            rowKpad(currentPos) == rowKpad(dest) -> listOf(moveHorizontallyKpad(currentPos, dest) + "A")
             else -> {
                 val times = abs(rowKpad(dest) - rowKpad(currentPos))
                 val horizontal = moveHorizontallyKpad(currentPos, dest)
-                val vertical =
-                    if (rowKpad(currentPos) < rowKpad(dest)) {
-                        "v".repeat(times)
-                    } else {
-                        "^".repeat(times)
-                    }
+                val vertical = if (rowKpad(currentPos) < rowKpad(dest)) "v".repeat(times) else "^".repeat(times)
                 return if (rowKpad(currentPos) == 3 && colKpad(dest) == 0) {
                     listOf(vertical + horizontal + "A")
                 } else if (colKpad(currentPos) == 0 && rowKpad(dest) == 3) {
@@ -146,73 +107,16 @@ class Day21(
         }
     }
 
-    private fun moveRobotDpad(combinations: List<String>): String {
-        val result = StringBuilder()
-        for (combination in combinations) {
-            var currentPos = 'A'
-            for (c in combination) {
-                val options = movesDpad(currentPos, c)
-                result.append(options.minByOrNull { moveRobotDpadCalc(moveRobotDpadList(listOf(it))) })
-                currentPos = c
-            }
-        }
-        return result.toString()
-    }
-
-    private fun moveRobotDpadList(combinations: List<String>): List<String> {
-        val total = mutableListOf<String>()
-        var min = Int.MAX_VALUE
-        for (combination in combinations) {
-            var results = listOf("")
-            var currentPos = 'A'
-            for (c in combination) {
-                val options = movesDpad(currentPos, c)
-                results = results.flatMap { result -> options.map { option -> result + option } }
-                currentPos = c
-            }
-            min = results.minOf { it.length }.coerceAtMost(min)
-            total.addAll(results.filter { it.length == min })
-        }
-        return total.filter { it.length == min }
-    }
-
-    private fun moveRobotDpadCalc(combinations: List<String>): Int {
-        var min = Int.MAX_VALUE
-        for (combination in combinations) {
-            var results = listOf("")
-            var currentPos = 'A'
-            for (c in combination) {
-                val options = movesDpad(currentPos, c)
-                results = results.flatMap { result -> options.map { option -> result + option } }
-                currentPos = c
-            }
-            min = results.minOf { it.length }.coerceAtMost(min)
-        }
-        return min
-    }
-
     private fun movesDpad(
         currentPos: Char,
         dest: Char,
     ): List<String> {
         return when {
-            (currentPos == dest) -> listOf("A")
-            (rowDpad(currentPos) == rowDpad(dest)) ->
-                listOf(
-                    moveHorizontallyDpad(
-                        currentPos,
-                        dest,
-                    ) + "A",
-                )
-
+            currentPos == dest -> listOf("A")
+            rowDpad(currentPos) == rowDpad(dest) -> listOf(moveHorizontallyDpad(currentPos, dest) + "A")
             else -> {
                 val horizontal = moveHorizontallyDpad(currentPos, dest)
-                val vertical =
-                    if (rowDpad(currentPos) < rowDpad(dest)) {
-                        "v"
-                    } else {
-                        "^"
-                    }
+                val vertical = if (rowDpad(currentPos) < rowDpad(dest)) "v" else "^"
                 if (colDpad(currentPos) == 0 && rowDpad(dest) == 0) {
                     return listOf(horizontal + vertical + "A")
                 } else if (rowDpad(currentPos) == 0 && colDpad(dest) == 0) {
@@ -250,22 +154,6 @@ class Day21(
             ">".repeat(times)
         } else {
             "<".repeat(times)
-        }
-    }
-}
-
-inline fun <R> List<List<Char>>.mapIndexed2NotNull(transform: (i: Int, j: Int, c: Char) -> R?): List<R> =
-    buildList {
-        forEachIndexed2 { i, j, c ->
-            transform(i, j, c)?.let { add(it) }
-        }
-    }
-
-inline fun List<List<Char>>.forEachIndexed2(action: (i: Int, j: Int, c: Char) -> Unit) {
-    for (i in indices) {
-        val b = get(i)
-        for (j in b.indices) {
-            action(i, j, b[j])
         }
     }
 }
