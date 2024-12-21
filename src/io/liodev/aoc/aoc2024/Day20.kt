@@ -15,20 +15,19 @@ class Day20(
     override val expectedValues = listOf(44, 1311, 285, 961364)
 
     private val racetrack = input.split("\n").map { it.toList() }
+    private val racetrackPath = findBestPath(racetrack.findFirstOrNull('S')!!, racetrack.findFirstOrNull('E')!!)
 
     override fun solvePart1(): Int {
-        val path = findBestPath(racetrack.findFirstOrNull('S')!!, racetrack.findFirstOrNull('E')!!)
-        val saveAtLeast = if (testInput(path)) 1 else 100
-        val (positions, endPositions) = precalculateMaps(path, 2, saveAtLeast)
+        val saveAtLeast = if (testInput(racetrackPath)) 1 else 100
+        val (positions, endPositions) = precalculateMaps(racetrackPath, 2, saveAtLeast)
 
-        return findCheats(path, saveAtLeast, positions, endPositions).size
+        return findCheats(racetrackPath, saveAtLeast, positions, endPositions).size
     }
 
     override fun solvePart2(): Int {
-        val path = findBestPath(racetrack.findFirstOrNull('S')!!, racetrack.findFirstOrNull('E')!!)
-        val saveAtLeast = if (testInput(path)) 50 else 100
-        val (positions, endPositions) = precalculateMaps(path, 20, saveAtLeast)
-        return findCheats(path, saveAtLeast, positions, endPositions).size
+        val saveAtLeast = if (testInput(racetrackPath)) 50 else 100
+        val (positions, endPositions) = precalculateMaps(racetrackPath, 20, saveAtLeast)
+        return findCheats(racetrackPath, saveAtLeast, positions, endPositions).size
     }
 
     private fun testInput(path: List<Coord>) = path.size == 85
