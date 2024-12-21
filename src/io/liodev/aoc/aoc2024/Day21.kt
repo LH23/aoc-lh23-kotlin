@@ -16,15 +16,15 @@ class Day21(
 
     override fun solvePart1(): Long {
         cacheMap.clear()
-        return codes.sumOf { code -> moveRobotKeypadRec(code, 2) * code.dropLast(1).toInt() }
+        return codes.sumOf { code -> moveRobot(code, 2) * code.dropLast(1).toInt() }
     }
 
     override fun solvePart2(): Long {
         cacheMap.clear()
-        return codes.sumOf { code -> moveRobotKeypadRec(code, 25) * code.dropLast(1).toInt() }
+        return codes.sumOf { code -> moveRobot(code, 25) * code.dropLast(1).toInt() }
     }
 
-    private fun moveRobotKeypadRec(
+    private fun moveRobot(
         code: String,
         depth: Int,
     ): Long {
@@ -75,57 +75,20 @@ class Day21(
         currentPos: Char,
         dest: Char,
     ): List<String> {
-        return when {
-            currentPos == dest -> listOf("A")
-            rowKpad(currentPos) == rowKpad(dest) -> listOf(moveHorizontallyKpad(currentPos, dest) + "A")
-            else -> {
-                val times = abs(rowKpad(dest) - rowKpad(currentPos))
-                val horizontal = moveHorizontallyKpad(currentPos, dest)
-                val vertical = if (rowKpad(currentPos) < rowKpad(dest)) "v".repeat(times) else "^".repeat(times)
-                return if (rowKpad(currentPos) == 3 && colKpad(dest) == 0) {
-                    listOf(vertical + horizontal + "A")
-                } else if (colKpad(currentPos) == 0 && rowKpad(dest) == 3) {
-                    listOf(horizontal + vertical + "A")
-                } else if (colKpad(currentPos) == colKpad(dest)) {
-                    listOf(vertical + "A")
-                } else {
-                    listOf(horizontal + vertical + "A", vertical + horizontal + "A")
-                }
-            }
-        }
-    }
-
-    private fun moveHorizontallyKpad(
-        currentPos: Char,
-        dest: Char,
-    ): String {
-        val times = abs(colKpad(dest) - colKpad(currentPos))
-        return if (colKpad(currentPos) < colKpad(dest)) {
-            ">".repeat(times)
+        return if (currentPos == dest) {
+            listOf("A")
         } else {
-            "<".repeat(times)
-        }
-    }
+            val diffCol = colKpad(currentPos) - colKpad(dest)
+            val horizontal = (if (diffCol < 0) ">" else "<").repeat(abs(diffCol))
+            val diffRow = rowKpad(currentPos) - rowKpad(dest)
+            val vertical = (if (diffRow < 0) "v" else "^").repeat(abs(diffRow))
 
-    private fun movesDpad(
-        currentPos: Char,
-        dest: Char,
-    ): List<String> {
-        return when {
-            currentPos == dest -> listOf("A")
-            rowDpad(currentPos) == rowDpad(dest) -> listOf(moveHorizontallyDpad(currentPos, dest) + "A")
-            else -> {
-                val horizontal = moveHorizontallyDpad(currentPos, dest)
-                val vertical = if (rowDpad(currentPos) < rowDpad(dest)) "v" else "^"
-                if (colDpad(currentPos) == 0 && rowDpad(dest) == 0) {
-                    return listOf(horizontal + vertical + "A")
-                } else if (rowDpad(currentPos) == 0 && colDpad(dest) == 0) {
-                    return listOf(vertical + horizontal + "A")
-                } else if (colDpad(currentPos) == colDpad(dest)) {
-                    return listOf(vertical + "A")
-                } else {
-                    return listOf(horizontal + vertical + "A", vertical + horizontal + "A")
-                }
+            return when {
+                rowKpad(currentPos) == 3 && colKpad(dest) == 0 -> listOf(vertical + horizontal + "A")
+                colKpad(currentPos) == 0 && rowKpad(dest) == 3 -> listOf(horizontal + vertical + "A")
+                colKpad(currentPos) == colKpad(dest) -> listOf(vertical + "A")
+                vertical.isEmpty() || horizontal.isEmpty() -> listOf(vertical + horizontal + "A")
+                else -> listOf(horizontal + vertical + "A", vertical + horizontal + "A")
             }
         }
     }
@@ -145,15 +108,24 @@ class Day21(
             else -> throw IllegalArgumentException("Invalid DPAD character: $c")
         }
 
-    private fun moveHorizontallyDpad(
+    private fun movesDpad(
         currentPos: Char,
         dest: Char,
-    ): String {
-        val times = abs(colDpad(dest) - colDpad(currentPos))
-        return if (colDpad(currentPos) < colDpad(dest)) {
-            ">".repeat(times)
+    ): List<String> {
+        return if (currentPos == dest) {
+            listOf("A")
         } else {
-            "<".repeat(times)
+            val diffCol = colDpad(currentPos) - colDpad(dest)
+            val horizontal = (if (diffCol < 0) ">" else "<").repeat(abs(diffCol))
+            val diffRow = rowDpad(currentPos) - rowDpad(dest)
+            val vertical = (if (diffRow < 0) "v" else "^").repeat(abs(diffRow))
+
+            return when {
+                colDpad(currentPos) == 0 && rowDpad(dest) == 0 -> listOf(horizontal + vertical + "A")
+                rowDpad(currentPos) == 0 && colDpad(dest) == 0 -> listOf(vertical + horizontal + "A")
+                vertical.isEmpty() || horizontal.isEmpty() -> listOf(vertical + horizontal + "A")
+                else -> listOf(horizontal + vertical + "A", vertical + horizontal + "A")
+            }
         }
     }
 }
