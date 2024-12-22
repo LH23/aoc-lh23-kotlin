@@ -15,41 +15,30 @@ class Day21(
     private val codes = input.lines()
     private var cacheMap = mutableMapOf<Pair<String, Int>, Long>()
 
-    override fun solvePart1(): Long {
-        cacheMap.clear()
-        return codes.sumOf { code -> moveRobot(code, 2) * code.dropLast(1).toInt() }
-    }
+    override fun solvePart1(): Long = codes.sumOf { code -> moveRobot(code, 2) * code.dropLast(1).toInt() }
 
-    override fun solvePart2(): Long {
-        cacheMap.clear()
-        return codes.sumOf { code -> moveRobot(code, 25) * code.dropLast(1).toInt() }
-    }
+    override fun solvePart2(): Long = codes.sumOf { code -> moveRobot(code, 25) * code.dropLast(1).toInt() }
 
     private fun moveRobot(
         code: String,
         depth: Int,
-    ): Long {
-        var prev = 'A'
-        return code.sumOf { c ->
-            val options = movesKeypad(prev, c)
-            prev = c
+    ): Long =
+        "A$code".zipWithNext().sumOf { (curr, dest) ->
+            val options = movesKeypad(curr, dest)
             options.minOf { o -> moveRobotDpadRec(o, depth, 1) }
         }
-    }
 
     private fun moveRobotDpadRec(
         code: String,
         depth: Int,
         level: Int,
     ): Long =
-        if (depth + 1 == level) {
-            code.length.toLong()
-        } else {
-            cacheMap.getOrPut(code to level) {
-                var prev = 'A'
-                code.sumOf { c ->
-                    val options = movesDpad(prev, c)
-                    prev = c
+        cacheMap.getOrPut(Pair(code, (depth - level))) {
+            "A$code".zipWithNext().sumOf { (curr, dest) ->
+                val options = movesDpad(curr, dest)
+                if (depth == level) {
+                    options.minOf { it.length.toLong() }
+                } else {
                     options.minOf { o -> moveRobotDpadRec(o, depth, level + 1) }
                 }
             }

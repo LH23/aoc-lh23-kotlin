@@ -28,7 +28,7 @@ class Day22(
     override fun solvePart2(): Long {
         val pricesMap = mutableMapOf<List<Int>, Int>()
 
-        for ((i, num) in initialSecrets.withIndex()) {
+        for (num in initialSecrets) {
             val diffs = mutableListOf<Int>()
             val prices = mutableListOf<Int>()
             val seen = mutableSetOf<List<Int>>()
@@ -74,5 +74,5 @@ fun main() {
     val year = 2024
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day22(testInput), Day22(realInput), year, printTimings = true, benchmark = false)
+    runDay(Day22(testInput), Day22(realInput), year, printTimings = true)
 }
