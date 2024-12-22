@@ -26,8 +26,8 @@ class Day22(
     }
 
     override fun solvePart2(): Long {
-        val diffs = List(initialSecrets.size) { mutableListOf<Long>() }
-        val prices = List(initialSecrets.size) { mutableListOf<Long>() }
+        val diffs = List(initialSecrets.size) { mutableListOf<Int>() }
+        val prices = List(initialSecrets.size) { mutableListOf<Int>() }
         for ((i, num) in initialSecrets.withIndex()) {
             var tmp = num.toLong()
             var oldTmp: Long
@@ -35,38 +35,55 @@ class Day22(
             repeat(repeat) {
                 oldTmp = tmp
                 tmp = nextSecretNum(tmp)
-                diffs[i].add(tmp % 10 - oldTmp % 10)
-                prices[i].add(tmp % 10)
+                diffs[i].add((tmp % 10 - oldTmp % 10).toInt())
+                prices[i].add((tmp % 10).toInt())
             }
         }
         return maxBananas(diffs, prices)
     }
 
-    private fun maxBananas(diffs: List<MutableList<Long>>, prices: List<MutableList<Long>>): Long {
-        var maxBananas = 0L
-        val seen = mutableSetOf<List<Long>>()
-        for (diff in diffs) {
+    private fun maxBananas(
+        diffs: List<MutableList<Int>>,
+        prices: List<MutableList<Int>>,
+    ): Long {
+        var maxBananas = 0
+        val diffsPriceMap =
+            List(diffs.size) { i ->
+                buildMap {
+                    for (seq in diffs[i].windowed(4).toSet()) {
+                        val index = (0..diffs[i].lastIndex - 3).indexOfFirst { (0..3).all { j -> diffs[i][it + j] == seq[j] } } + 3
+                        this[seq] = prices[i][index]
+                    }
+                }
+            }
+
+        val seen = mutableSetOf<List<Int>>()
+        for (diff in diffs.take(2)) { // 2 is enough for my input
             for (seq in diff.windowed(4)) {
                 if (seq in seen) continue
-                val bananas = calculateBananas(seq, diffs, prices)
+                val bananas = calculateBananas(seq, diffsPriceMap)
                 if (bananas > maxBananas) {
                     maxBananas = bananas
-                    println("new maxBananas: $maxBananas with seq: $seq")
+                    //println("new maxBananas: $maxBananas with seq: $seq in diff ${diffs.indexOf(diff)}")
                 }
                 seen += seq
             }
         }
-        return maxBananas
+        return maxBananas.toLong()
+    }
+
+    private fun calculateBananas(seq: List<Int>, diffsList: List<Map<List<Int>, Int>>): Int {
+        return diffsList.sumOf { it[seq] ?: 0 }
     }
 
     private fun calculateBananas(
-        seq: List<Long>,
-        diffsList: List<MutableList<Long>>,
-        pricesList: List<MutableList<Long>>,
-    ): Long =
+        seq: List<Int>,
+        diffsList: List<MutableList<Int>>,
+        pricesList: List<MutableList<Int>>,
+    ): Int =
         diffsList.zip(pricesList).sumOf { (diff, prices) ->
-            val index = (0..diff.lastIndex - 3).indexOfFirst { i -> (0..3).all { j -> diff[i + j] == seq[j] } }
-            if (index == -1 || (index + 3) > prices.lastIndex) 0 else prices[index + 3]
+            val index = (0..diff.lastIndex - 3).indexOfFirst { (0..3).all { j -> diff[it + j] == seq[j] } }
+            if (index == -1) 0 else prices[index + 3]
         }
 
     private fun nextSecretNum(tmp: Long): Long {
@@ -90,5 +107,5 @@ fun main() {
     val year = 2024
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day22(testInput), Day22(realInput), year)
+    runDay(Day22(testInput), Day22(realInput), year, printTimings = true, benchmark = false)
 }
