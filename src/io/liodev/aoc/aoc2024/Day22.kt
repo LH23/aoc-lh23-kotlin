@@ -10,38 +10,18 @@ class Day22(
 ) : Day<Long> {
     override val expectedValues = listOf(37990510L, 15335183969, 23, 1696)
 
-    private val initialSecrets = input.lines().map { it.toInt() }
+    private val initialSecrets = input.lines().map { it.toLong() }
 
-    override fun solvePart1(): Long {
-        var sum = 0L
-        for (num in initialSecrets) {
-            var tmp = num.toLong()
-            val repeat = 2000
-            repeat(repeat) {
-                tmp = nextSecretNum(tmp)
-            }
-            sum += tmp
-        }
-        return sum
-    }
+    override fun solvePart1(): Long = initialSecrets.sumOf { it.secretNumsSequence().drop(2000).first() }
 
     override fun solvePart2(): Long {
         val pricesMap = mutableMapOf<List<Int>, Int>()
 
         for (num in initialSecrets) {
-            val diffs = mutableListOf<Int>()
-            val prices = mutableListOf<Int>()
+            val secrets = num.secretNumsSequence().take(2000)
+            val diffs = (listOf(num) + secrets).zipWithNext().map { (a, b) -> (b % 10 - a % 10).toInt() }
+            val prices = secrets.map { (it % 10).toInt() }.toList()
             val seen = mutableSetOf<List<Int>>()
-
-            var tmp = num.toLong()
-            var oldTmp: Long
-            val repeat = 2000
-            repeat(repeat) {
-                oldTmp = tmp
-                tmp = nextSecretNum(tmp)
-                diffs.add((tmp % 10 - oldTmp % 10).toInt())
-                prices.add((tmp % 10).toInt())
-            }
 
             diffs.windowed(4).forEachIndexed { i, seq ->
                 if (seq !in seen) {
@@ -53,6 +33,11 @@ class Day22(
         return pricesMap.maxOf { it.value }.toLong()
     }
 
+    private fun Long.secretNumsSequence() =
+        generateSequence(this) {
+            nextSecretNum(it)
+        }
+
     private fun nextSecretNum(tmp: Long): Long {
         var secret = tmp
         secret = prune(mix(secret * 64, secret))
@@ -61,13 +46,11 @@ class Day22(
         return secret
     }
 
-    private fun mix(
-        a: Long,
-        b: Long,
-    ): Long = a xor b
+    private fun mix(a: Long, b: Long): Long = a xor b
 
-    private fun prune(num: Long): Long = (num + 16777216) % 16777216
+    private fun prune(num: Long): Long = num % 16777216
 }
+
 
 fun main() {
     val name = Day22::class.simpleName
