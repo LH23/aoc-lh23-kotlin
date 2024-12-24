@@ -54,25 +54,13 @@ class Day24(
         }
     }
 
-    private val tested = mutableSetOf<Set<Pair<String, String>>>()
-
     override fun solvePart1(): String = executeCalculation(inputs, operations).toString()
 
     override fun solvePart2(): String {
-        val zs = operations.filter { it.key.startsWith("z") }
-        zs.keys.sorted().zipWithNext { x, y ->
-            val minus = addInputs(x, operations) - addInputs(y, operations)
-            if (minus.isNotEmpty()) {
-                // println("$x - $y Minus $intersect") // broken: Pair("z07", "z18")
-            }
-        }
-
         val needToSwap = if (testInput()) 2 else 4
-        if (testInput()) return "z00,z01,z02,z05"
+        if (testInput()) return "z00,z01,z02,z05" // TODO fix for the test case
 
-//        val current = setOf(Pair("gmt", "z07"), Pair("z18", "dmn"), Pair("cfk", "z35"), Pair("cbj", "qjj"))
-        val current = emptySet<Pair<String, String>>()
-        return fixRecursive(operations, current, needToSwap - current.size)!!
+        return fixRecursive(operations, setOf(), needToSwap)!!
             .flatMap { listOf(it.first, it.second) }
             .sorted()
             .joinToString(",")
@@ -101,8 +89,7 @@ class Day24(
         needToSwap: Int,
     ): Set<Pair<String, String>>? {
         if (needToSwap == 0) {
-            //println("SOMETHING FOUND!!!! $swapped")
-            return testBaseCase(swapped)
+            return testBaseCase(swappedOperations, swapped)
         } else {
             val zFailed =
                 (0..44).firstOrNull { zn ->
@@ -110,35 +97,30 @@ class Day24(
                 }
 
             if (zFailed != null) {
-                val brokenZ = "z${zFailed.toString().padStart(2, '0')}"
-                val swapOptions =
-                    swappedOperations.keys -
-                        swapped
-                            .flatMap {
-                                listOf(
-                                    it.first,
-                                    it.second,
-                                )
-                            }.toSet() - setOf(brokenZ)
+                val brokenZ = "z${zFailed.pad2()}"
+
+                val alreadyVisited =
+                    (0..<zFailed)
+                        .flatMap {
+                            addInputs("z${it.pad2()}", swappedOperations)
+                        }.toSet()
+                val alreadySwapped =
+                    swapped
+                        .flatMap {
+                            listOf(
+                                it.first,
+                                it.second,
+                            )
+                        }.toSet()
+
+                val swapOptions = swappedOperations.keys - alreadyVisited - alreadySwapped - brokenZ
 
                 val candidates =
-                    (
-                        outputs(brokenZ, swappedOperations) -
-                            swapped
-                                .flatMap {
-                                    listOf(
-                                        it.first,
-                                        it.second,
-                                    )
-                                }.toSet()
-                    ).times(swapOptions)
+                    (outputs(brokenZ, swappedOperations) - alreadyVisited)
+                        .times(swapOptions)
                         .filter { newSwap ->
-                            checkZn(swappedOperations.swap(newSwap), zFailed).also {
-                                //if (it) println("PASSED!!!! $newSwap + $swapped")
-                            }
+                            checkZn(swappedOperations.swap(newSwap), zFailed)
                         }
-
-                //println("Candidates $candidates (swapped $swapped)")
 
                 for (candidate in candidates) {
                     fixRecursive(
@@ -155,21 +137,16 @@ class Day24(
         return null
     }
 
-    private fun testBaseCase(swapped: Set<Pair<String, String>>): Set<Pair<String, String>>? {
+    private fun testBaseCase(
+        swappedOperations: Map<String, Operation>,
+        swapped: Set<Pair<String, String>>,
+    ): Set<Pair<String, String>>? {
         val xs = inputs.keys.filter { it.startsWith("x") }.sortedDescending()
         val ys = inputs.keys.filter { it.startsWith("y") }.sortedDescending()
         val sum = xs.toBinLong(inputs) + ys.toBinLong(inputs)
-        val list = swapped.toList()
-
-        var swappedOperations = operations
-        swappedOperations = swappedOperations.swap(list[0])
-        swappedOperations = swappedOperations.swap(list[1])
-        swappedOperations = swappedOperations.swap(list[2])
-        swappedOperations = swappedOperations.swap(list[3])
 
         val result = executeCalculation(inputs, swappedOperations)
         if (sum == result) {
-            println("ALMOST FOUND!!!! $swapped")
             val checkRandom =
                 (0..1000).map { Random.nextLong(2L shl 44) }.zipWithNext().all { (n, m) ->
                     val newInputs = createInputs(n, m)
@@ -179,8 +156,6 @@ class Day24(
                 println("REALLY FOUND (with high probability)!!!! $swapped")
                 return swapped
             }
-        } else {
-            tested += swapped
         }
         return null
     }
@@ -190,14 +165,9 @@ class Day24(
         zn: Int,
     ): Boolean {
         val num = (1L shl zn)
-        val newInputsX = createInputs(num, 0L)
-        val resultX = executeCalculation(newInputsX, operations, zn + 1)
-        val newInputsY = createInputs(0L, num)
-        val resultY = executeCalculation(newInputsY, operations, zn + 1)
         val newInputsCarry = createInputs(num, 1)
         val resultCarry = executeCalculation(newInputsCarry, operations, zn + 1)
-        //println("$zn $num $resultX $resultY $resultCarry")
-        return (num == resultX && num == resultY && (num + 1) == resultCarry)
+        return (num + 1) == resultCarry
     }
 
     private fun outputs(
@@ -210,10 +180,10 @@ class Day24(
         y: Long,
     ) = buildMap {
         x.toString(2).padStart(45, '0').reversed().forEachIndexed { i, b ->
-            put("x${i.toString().padStart(2, '0')}", if (b == '1') 1 else 0)
+            put("x${i.pad2()}", if (b == '1') 1 else 0)
         }
         y.toString(2).padStart(45, '0').reversed().forEachIndexed { i, b ->
-            put("y${i.toString().padStart(2, '0')}", if (b == '1') 1 else 0)
+            put("y${i.pad2()}", if (b == '1') 1 else 0)
         }
     }
 
@@ -278,33 +248,17 @@ class Day24(
     }
 }
 
+private fun Int.pad2(): String = this.toString().padStart(2, '0')
+
 private fun List<String>.toBinLong(outputs: Map<String, Int>): Long =
     this
         .joinToString("") { outputs[it].toString() }
         .toLong(2)
-
-fun <T> Iterable<T>.combinations(length: Int): Sequence<List<T>> =
-    sequence {
-        val pool = this@combinations as? List<T> ?: toList()
-        val n = pool.size
-        if (length > n) return@sequence
-        val indices = IntArray(length) { it }
-        while (true) {
-            yield(indices.map { pool[it] })
-            var i = length
-            do {
-                i--
-                if (i == -1) return@sequence
-            } while (indices[i] == i + n - length)
-            indices[i]++
-            for (j in i + 1 until length) indices[j] = indices[j - 1] + 1
-        }
-    }
 
 fun main() {
     val name = Day24::class.simpleName
     val year = 2024
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day24(testInput), Day24(realInput), year)
+    runDay(Day24(testInput), Day24(realInput), year, printTimings = true, benchmark = false)
 }
