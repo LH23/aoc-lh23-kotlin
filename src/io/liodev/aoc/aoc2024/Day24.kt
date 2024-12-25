@@ -143,17 +143,17 @@ class Day24(
     ): Set<Pair<String, String>>? {
         val xs = inputs.keys.filter { it.startsWith("x") }.sortedDescending()
         val ys = inputs.keys.filter { it.startsWith("y") }.sortedDescending()
-        val sum = xs.toBinLong(inputs) + ys.toBinLong(inputs)
+        val sum = xs.binToLong(inputs) + ys.binToLong(inputs)
 
         val result = executeCalculation(inputs, swappedOperations)
         if (sum == result) {
-            val checkRandom =
+            val randomChecksPassed =
                 (0..1000).map { Random.nextLong(2L shl 44) }.zipWithNext().all { (n, m) ->
                     val newInputs = createInputs(n, m)
                     n + m == executeCalculation(newInputs, swappedOperations)
                 }
-            if (checkRandom) {
-                println("REALLY FOUND (with high probability)!!!! $swapped")
+            if (randomChecksPassed) {
+                //println("REALLY FOUND (with high probability)!!!! $swapped")
                 return swapped
             }
         }
@@ -201,7 +201,8 @@ class Day24(
                 .filter { it.startsWith("z") }
                 .sortedDescending()
                 .takeLast(take + 1)
-        for (i in 0..50) {
+        var attempts = 0
+        while (attempts++ < 50) {
             for (operation in operations.values) {
                 if (outputs.getOrDefault(operation.resultWire, -1) == -1) {
                     outputs[operation.resultWire] =
@@ -218,7 +219,7 @@ class Day24(
             }
         }
         return if (zs.count { outputs[it] == -1 } == 0) {
-            zs.toBinLong(outputs)
+            zs.binToLong(outputs)
         } else {
             -1
         }
@@ -250,7 +251,7 @@ class Day24(
 
 private fun Int.pad2(): String = this.toString().padStart(2, '0')
 
-private fun List<String>.toBinLong(outputs: Map<String, Int>): Long =
+private fun List<String>.binToLong(outputs: Map<String, Int>): Long =
     this
         .joinToString("") { outputs[it].toString() }
         .toLong(2)
