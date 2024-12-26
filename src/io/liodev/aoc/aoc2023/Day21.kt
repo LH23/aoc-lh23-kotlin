@@ -1,7 +1,6 @@
 package io.liodev.aoc.aoc2023
 
 import io.liodev.aoc.Day
-import io.liodev.aoc.checkResult
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.Coord
@@ -11,22 +10,26 @@ import io.liodev.aoc.utils.times
 import io.liodev.aoc.utils.validIndex
 
 // --- 2023 Day 21: Step Counter ---
-class Day21(val input: String) : Day<Long> {
+class Day21(
+    val input: String
+) : Day<Long> {
     override val expectedValues = listOf(42L, 3724, 359867795768093, 620348631910321)
 
     private var garden = input.split("\n").map { it.toMutableList() }
 
     override fun solvePart1(): Long {
         garden.parityFloodFillLimit(
-            Coord((garden.indices * garden[0].indices).first() { (i, j) -> garden[i][j] == 'S' }),
-            'A', listOf('.', 'S'), 64
+            Coord((garden.indices * garden[0].indices).first { (i, j) -> garden[i][j] == 'S' }),
+            'A',
+            listOf('.', 'S'),
+            64,
         )
         return garden.sumOf { r -> r.count { it == 'B' }.toLong() }
     }
 
     override fun solvePart2(): Long {
         val cache = generateCacheTable(garden.size)
-        //cache.map { (k,v) -> println("$k: $v") }
+//        cache.map { (k,v) -> println("$k: $v") }
 
         // for validation with Day21_test3.txt
 //        checkResult("s0", calculatePos(cache, garden.size, 0), 1L) // 1 + 0 + 0 + 0
@@ -45,25 +48,26 @@ class Day21(val input: String) : Day<Long> {
     }
 
     private fun generateCacheTable(n: Int): Map<Coord, List<Pair<Long, Long>>> {
-        val entryPoints = listOf(
-            Coord(0, 0),
-            Coord(0, n / 2),
-            Coord(0, n - 1),
-            Coord(n / 2, 0),
-            Coord(n / 2, n / 2),
-            Coord(n / 2, n - 1),
-            Coord(n - 1, 0),
-            Coord(n - 1, n / 2),
-            Coord(n - 1, n - 1),
-        )
+        val entryPoints =
+            listOf(
+                Coord(0, 0),
+                Coord(0, n / 2),
+                Coord(0, n - 1),
+                Coord(n / 2, 0),
+                Coord(n / 2, n / 2),
+                Coord(n / 2, n - 1),
+                Coord(n - 1, 0),
+                Coord(n - 1, n / 2),
+                Coord(n - 1, n - 1),
+            )
 
         return entryPoints.associateWith { coord ->
             (0..<n).map { steps ->
                 val tmpGarden = input.split("\n").map { it.toMutableList() }
                 tmpGarden.parityFloodFillLimit(coord, 'A', listOf('.', 'S'), steps)
-                (tmpGarden.sumOf { r ->
+                tmpGarden.sumOf { r ->
                     r.count { it == 'A' }.toLong()
-                } to tmpGarden.sumOf { r -> r.count { it == 'B' }.toLong() })
+                } to tmpGarden.sumOf { r -> r.count { it == 'B' }.toLong() }
             }
         }
     }
@@ -79,22 +83,22 @@ class Day21(val input: String) : Day<Long> {
         }
 
         val cornersEven = cache[Coord(0, 0)]!![position].even() +
-                    cache[Coord(0, n - 1)]!![position].even() +
-                    cache[Coord(n - 1, 0)]!![position].even() +
-                    cache[Coord(n - 1, n - 1)]!![position].even()
+            cache[Coord(0, n - 1)]!![position].even() +
+            cache[Coord(n - 1, 0)]!![position].even() +
+            cache[Coord(n - 1, n - 1)]!![position].even()
 
         val cornersOdd = cache[Coord(0, 0)]!![position].odd() +
-                    cache[Coord(0, n - 1)]!![position].odd() +
-                    cache[Coord(n - 1, 0)]!![position].odd() +
-                    cache[Coord(n - 1, n - 1)]!![position].odd() + 1
+            cache[Coord(0, n - 1)]!![position].odd() +
+            cache[Coord(n - 1, 0)]!![position].odd() +
+            cache[Coord(n - 1, n - 1)]!![position].odd() + 1
 
         val innerEven = (cache[Coord(n / 2, n / 2)]!!.last()).even()
         val innerOdd = (cache[Coord(n / 2, n / 2)]!!.last()).odd()
 
         return innerOdd * ((fullSquares.toLong() + 1) * (fullSquares.toLong() + 1)) +
-                innerEven * (fullSquares.toLong() * fullSquares.toLong()) +
-                cornersEven * (fullSquares.toLong()) -
-                cornersOdd * (fullSquares.toLong() + 1)
+            innerEven * (fullSquares.toLong() * fullSquares.toLong()) +
+            cornersEven * (fullSquares.toLong()) -
+            cornersOdd * (fullSquares.toLong() + 1)
     }
 }
 
@@ -121,6 +125,7 @@ private fun List<MutableList<Char>>.parityFloodFillLimit(
 }
 
 private fun Pair<Long, Long>.odd() = this.first
+
 private fun Pair<Long, Long>.even() = this.second
 
 fun main() {

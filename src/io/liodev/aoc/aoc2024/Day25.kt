@@ -3,8 +3,8 @@ package io.liodev.aoc.aoc2024
 import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
-import io.liodev.aoc.utils.Dir
 import io.liodev.aoc.utils.Coord
+import io.liodev.aoc.utils.Dir
 import io.liodev.aoc.utils.get
 import io.liodev.aoc.utils.times
 
@@ -12,25 +12,32 @@ import io.liodev.aoc.utils.times
 class Day25(
     input: String,
 ) : Day<Int> {
-    override val expectedValues = listOf(3, 3344, 2024, 2024)
+    override val expectedValues = listOf(3, 3344, 12_25_2024, 12_25_2024)
 
     private val keysLocks = input.split("\n\n").map { it.lines().map { it.toList() } }
 
     override fun solvePart1(): Int {
-        val locks = keysLocks.filter{ it.first().all { it == '#' }}
-        val keys = keysLocks.filter{ it.last().all { it == '#' }}
-        val locksHeights = locks.map { heights(it, Dir.South) }
-        val keysHeights = keys.map { heights(it, Dir.North) }
+        val locksHeights =
+            keysLocks.filter { it.first().any { it == '#' } }.map { heights(it, Dir.South) }
+        val keysHeights =
+            keysLocks.filter { it.last().any { it == '#' } }.map { heights(it, Dir.North) }
 
-        return locksHeights.times(keysHeights).count { (lock, key) -> fits(lock, key) }
+        return locksHeights
+            .times(keysHeights)
+            .count { (lock, key) -> fits(lock, key, keysLocks[0].size - 1) }
     }
 
-    private fun fits(lock: List<Int>, key: List<Int>): Boolean {
-        return lock.zip(key).all { (lh, kh) -> lh + kh < 6 }
-    }
+    private fun fits(
+        lock: List<Int>,
+        key: List<Int>,
+        size: Int,
+    ): Boolean = lock.zip(key).all { (lh, kh) -> lh + kh < size }
 
-    private fun heights(matrix: List<List<Char>>, dir: Dir): List<Int> {
-        return matrix[0].indices.map { c ->
+    private fun heights(
+        matrix: List<List<Char>>,
+        dir: Dir,
+    ): List<Int> =
+        matrix[0].indices.map { c ->
             var coord = Coord(if (dir == Dir.South) 0 else matrix.lastIndex, c)
             var height = -1
             while (matrix[coord] == '#') {
@@ -39,11 +46,8 @@ class Day25(
             }
             height
         }
-    }
 
-    override fun solvePart2(): Int {
-        return 2024
-    }
+    override fun solvePart2(): Int = 12_25_2024 // MERRY CHRISTMAS!!
 }
 
 fun main() {

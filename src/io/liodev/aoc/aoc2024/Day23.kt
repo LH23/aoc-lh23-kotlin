@@ -8,7 +8,8 @@ import io.liodev.aoc.runDay
 class Day23(
     input: String,
 ) : Day<String> {
-    override val expectedValues = listOf("7", "1368", "co,de,ka,ta", "dd,ig,il,im,kb,kr,pe,ti,tv,vr,we,xu,zi")
+    override val expectedValues =
+        listOf("7", "1368", "co,de,ka,ta", "dd,ig,il,im,kb,kr,pe,ti,tv,vr,we,xu,zi")
 
     private val networkGraph =
         buildMap<String, MutableSet<String>> {
@@ -39,7 +40,7 @@ class Day23(
 
 private fun Map<String, Set<String>>.largestClique(): Set<String> = this.runBronKerbosch(this.keys)
 
-//algorithm BronKerbosch2(R, P, X) is
+// algorithm BronKerbosch2(R, P, X) is
 //    if P and X are both empty then
 //        report R as a maximal clique
 //    choose a pivot vertex u in P ⋃ X (* pivot with most neighbors minimize recursive calls)
@@ -51,19 +52,20 @@ fun Map<String, Set<String>>.runBronKerbosch(
     p: Set<String>,
     r: Set<String> = emptySet(),
     x: Set<String> = emptySet(),
-    candidates: MutableSet<Set<String>> = mutableSetOf(),
-): Set<String> {
-    if (p.isEmpty() && x.isEmpty() && r !in candidates) {
-        candidates.add(r)
+): Set<String> =
+    if (p.isEmpty() && x.isEmpty()) {
+        r
     } else {
-        val mostNeighbors = (p + x).maxByOrNull { this[it]!!.size }
-        val p2 = if (mostNeighbors != null) p.minus(this[mostNeighbors]!!) else p
-        for (v in p2) {
-            runBronKerbosch(p.intersect(this[v]!!), r + v, x.intersect(this[v]!!), candidates)
-        }
+        val mostNeighbors = (p + x).maxBy { this[it]!!.size }
+        (p - this[mostNeighbors]!!)
+            .map { v ->
+                runBronKerbosch(
+                    p.intersect(this[v]!!),
+                    r + v,
+                    x.intersect(this[v]!!),
+                )
+            }.maxBy { it.size }
     }
-    return candidates.maxBy { it.size }
-}
 
 fun main() {
     val name = Day23::class.simpleName
