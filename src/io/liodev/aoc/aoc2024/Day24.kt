@@ -19,81 +19,72 @@ class Day24(
             .lines()
             .map { it.substringBefore(": ") to (it.substringAfter(": ").toInt()) }
             .associate { it }
-    private val operations =
+    private val gates =
         input
             .split("\n\n")[1]
             .lines()
             .associate { line ->
                 line.split(" -> ").let {
                     val (a, op, b) = it[0].split(" ")
-                    it[1] to Operation(it[1], a, Op.fromString(op), b)
+                    it[1] to Gate(a, b, gateOperation(op), it[1])
                 }
             }
 
-    data class Operation(
-        val resultWire: String,
+    data class Gate(
         val inputWireA: String,
-        val op: Op,
         val inputWireB: String,
+        val execute: (Int, Int) -> Int,
+        val resultWire: String,
     )
 
-    enum class Op {
-        AND,
-        OR,
-        XOR,
-        ;
-
-        companion object {
-            fun fromString(s: String): Op =
-                when (s) {
-                    "AND" -> AND
-                    "OR" -> OR
-                    "XOR" -> XOR
-                    else -> throw IllegalArgumentException("Unknown op $s")
-                }
+    private fun gateOperation(s: String): (Int, Int) -> Int =
+        when (s) {
+            "AND" -> { a, b -> a and b }
+            "OR" -> { a, b -> a or b }
+            "XOR" -> { a, b -> a xor b }
+            else -> throw IllegalArgumentException("Unknown gate operation $s")
         }
-    }
 
-    override fun solvePart1(): String = executeCalculation(inputs, operations).toString()
+    override fun solvePart1(): String = runCircuit(inputs, gates).toString()
 
     override fun solvePart2(): String {
         val needToSwap = if (testInput()) 2 else 4
         if (testInput()) return "z00,z01,z02,z05" // TODO fix for the test case
 
-        return fixRecursive(operations, setOf(), needToSwap)!!
+        return fixRecursive(gates, setOf(), needToSwap)!!
             .flatMap { listOf(it.first, it.second) }
             .sorted()
             .joinToString(",")
     }
 
-    private fun testInput(): Boolean = operations.keys.first() == "z05"
+    private fun testInput(): Boolean = gates.keys.first() == "z05"
 
     private fun addInputs(
         wire: String,
-        operations: Map<String, Operation>,
+        gates: Map<String, Gate>,
     ): Set<String> =
-        if (!operations.contains(wire)) {
+        if (!gates.contains(wire)) {
             emptySet()
         } else {
             listOf(
-                operations[wire]!!.inputWireA,
-                operations[wire]!!.inputWireB,
+                gates[wire]!!.inputWireA,
+                gates[wire]!!.inputWireB,
             ).filter { !it.startsWith("x") && !it.startsWith("y") }.toSet() +
-                addInputs(operations[wire]!!.inputWireA, operations) +
-                addInputs(operations[wire]!!.inputWireB, operations)
+                addInputs(gates[wire]!!.inputWireA, gates) +
+                addInputs(gates[wire]!!.inputWireB, gates)
         }
 
     private fun fixRecursive(
-        swappedOperations: Map<String, Operation>,
+        swappedGates: Map<String, Gate>,
         swapped: Set<Pair<String, String>>,
         needToSwap: Int,
     ): Set<Pair<String, String>>? {
         if (needToSwap == 0) {
-            return testBaseCase(swappedOperations, swapped)
+            return testBaseCase(swappedGates, swapped)
         } else {
             val zFailed =
                 (0..44).firstOrNull { zn ->
-                    !checkZn(swappedOperations, zn)
+                    !checkZn(swappedGates, zn)
                 }
 
             if (zFailed != null) {
@@ -102,7 +93,7 @@ class Day24(
                 val alreadyVisited =
                     (0..<zFailed)
                         .flatMap {
-                            addInputs("z${it.pad2()}", swappedOperations)
+                            addInputs("z${it.pad2()}", swappedGates)
                         }.toSet()
                 val alreadySwapped =
                     swapped
@@ -113,18 +104,18 @@ class Day24(
                             )
                         }.toSet()
 
-                val swapOptions = swappedOperations.keys - alreadyVisited - alreadySwapped - brokenZ
+                val swapOptions = swappedGates.keys - alreadyVisited - alreadySwapped - brokenZ
 
                 val candidates =
-                    (outputs(brokenZ, swappedOperations) - alreadyVisited)
+                    (outputs(brokenZ, swappedGates) - alreadyVisited)
                         .times(swapOptions)
                         .filter { newSwap ->
-                            checkZn(swappedOperations.swap(newSwap), zFailed)
+                            checkZn(swappedGates.swap(newSwap), zFailed)
                         }
 
                 for (candidate in candidates) {
                     fixRecursive(
-                        swappedOperations.swap(candidate),
+                        swappedGates.swap(candidate),
                         swapped + candidate,
                         needToSwap - 1,
                     )?.let {
@@ -138,22 +129,22 @@ class Day24(
     }
 
     private fun testBaseCase(
-        swappedOperations: Map<String, Operation>,
+        swappedGates: Map<String, Gate>,
         swapped: Set<Pair<String, String>>,
     ): Set<Pair<String, String>>? {
         val xs = inputs.keys.filter { it.startsWith("x") }.sortedDescending()
         val ys = inputs.keys.filter { it.startsWith("y") }.sortedDescending()
         val sum = xs.binToLong(inputs) + ys.binToLong(inputs)
 
-        val result = executeCalculation(inputs, swappedOperations)
+        val result = runCircuit(inputs, swappedGates)
         if (sum == result) {
             val randomChecksPassed =
                 (0..1000).map { Random.nextLong(2L shl 44) }.zipWithNext().all { (n, m) ->
                     val newInputs = createInputs(n, m)
-                    n + m == executeCalculation(newInputs, swappedOperations)
+                    n + m == runCircuit(newInputs, swappedGates)
                 }
             if (randomChecksPassed) {
-                //println("REALLY FOUND (with high probability)!!!! $swapped")
+                // println("REALLY FOUND (with high probability)!!!! $swapped")
                 return swapped
             }
         }
@@ -161,19 +152,19 @@ class Day24(
     }
 
     private fun checkZn(
-        operations: Map<String, Operation>,
+        gates: Map<String, Gate>,
         zn: Int,
     ): Boolean {
         val num = (1L shl zn)
         val newInputsCarry = createInputs(num, 1)
-        val resultCarry = executeCalculation(newInputsCarry, operations, zn + 1)
+        val resultCarry = runCircuit(newInputsCarry, gates, zn + 1)
         return (num + 1) == resultCarry
     }
 
     private fun outputs(
         brokenZ: String,
-        swappedOperations: Map<String, Operation>,
-    ): Set<String> = setOf(brokenZ) + addInputs(brokenZ, swappedOperations)
+        swappedGates: Map<String, Gate>,
+    ): Set<String> = setOf(brokenZ) + addInputs(brokenZ, swappedGates)
 
     private fun createInputs(
         x: Long,
@@ -187,34 +178,45 @@ class Day24(
         }
     }
 
-    private fun executeCalculation(
+    private fun runCircuit(
         inputs: Map<String, Int>,
-        operations: Map<String, Operation>,
-        take: Int = 45,
+        gates: Map<String, Gate>,
+        takeLeastSignificant: Int = 45,
     ): Long {
         // println("Calculation for $inputs")
         val outputs = mutableMapOf<String, Int>()
         outputs.putAll(inputs)
-        operations.keys.forEach { outputs[it] = -1 }
+        gates.keys.forEach { outputs[it] = -1 }
+
         val zs =
-            outputs.keys
+            gates.keys
                 .filter { it.startsWith("z") }
                 .sortedDescending()
-                .takeLast(take + 1)
-        var attempts = 0
-        while (attempts++ < 50) {
-            for (operation in operations.values) {
-                if (outputs.getOrDefault(operation.resultWire, -1) == -1) {
-                    outputs[operation.resultWire] =
-                        executeOperation(
-                            outputs,
-                            operation.inputWireA,
-                            operation.op,
-                            operation.inputWireB,
-                        )
+                .takeLast(takeLeastSignificant + 1)
+
+        var changes: Boolean
+        val remaining = mutableSetOf<String>()
+        remaining.addAll(zs)
+        while (remaining.isNotEmpty()) {
+            changes = false
+            for (wire in remaining.toList()) {
+                val gate = gates[wire]!!
+
+                val missingInputs =
+                    listOf(gate.inputWireA, gate.inputWireB)
+                        .filter { outputs[it] == -1 }
+                if (missingInputs.isNotEmpty()) {
+                    remaining.addAll(missingInputs)
+                    continue
                 }
+
+                val a = outputs[gate.inputWireA]!!
+                val b = outputs[gate.inputWireB]!!
+                outputs[gate.resultWire] = gate.execute(a, b)
+                remaining.remove(gate.resultWire)
+                changes = true
             }
-            if (zs.count { outputs[it] == -1 } == 0) {
+            if (!changes) {
                 break
             }
         }
@@ -225,23 +227,7 @@ class Day24(
         }
     }
 
-    private fun executeOperation(
-        vars: MutableMap<String, Int>,
-        v1: String,
-        operation: Op,
-        v2: String,
-    ): Int =
-        if (!vars.contains(v1) || !vars.contains(v2) || vars[v1] == -1 || vars[v2] == -1) {
-            -1
-        } else {
-            when (operation) {
-                Op.AND -> if (vars[v1] == 1 && vars[v2] == 1) 1 else 0
-                Op.OR -> if (vars[v1] == 1 || vars[v2] == 1) 1 else 0
-                Op.XOR -> if ((vars[v1] == 1 && vars[v2] == 0) || (vars[v1] == 0 && vars[v2] == 1)) 1 else 0
-            }
-        }
-
-    private fun Map<String, Operation>.swap(pair: Pair<String, String>): Map<String, Operation> {
+    private fun Map<String, Gate>.swap(pair: Pair<String, String>): Map<String, Gate> {
         val a = this[pair.first]!!.copy(resultWire = pair.second)
         val b = this[pair.second]!!.copy(resultWire = pair.first)
         return this.filter { it.key != pair.first && it.key != pair.second } +
