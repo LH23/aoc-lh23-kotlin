@@ -4,6 +4,11 @@ import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.times
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
 
 // --- 2024 Day 24: Crossed Wires ---
@@ -59,7 +64,11 @@ class Day24(
         val test = if (testInput()) { x: Long, y: Long -> x and y } else { x, y -> x + y }
         val maxBits = if (testInput()) 5 else 44
 
-        return swapGatesRecursive(gates, setOf(), needToSwap, 0..maxBits, checkZn, test, maxBits)!!
+        val swappedGates =
+            runBlocking {
+                swapGatesRecursive(gates, setOf(), needToSwap, 0..maxBits, checkZn, test, maxBits)!!
+            }
+        return swappedGates
     }
 
     private fun testInput(): Boolean = gates.keys.first() == "z05"
@@ -79,7 +88,7 @@ class Day24(
                 addInputs(gates[wire]!!.inputWireB, gates)
         }
 
-    private fun swapGatesRecursive(
+    private suspend fun swapGatesRecursive(
         swappedGates: Map<String, Gate>,
         swapped: Set<Pair<String, String>>,
         needToSwap: Int,
@@ -89,29 +98,25 @@ class Day24(
         maxBits: Int,
     ): Set<Pair<String, String>>? {
         if (needToSwap == 0) {
-            return testBaseCase(swappedGates, swapped, test, maxBits)
+            if (passTestCases(swappedGates, test, maxBits)) {
+                return swapped
+            }
         } else {
-            val zFailed = fromTo.firstOrNull { zn -> !checkZn(swappedGates, zn) }
+            val zFailedList = fromTo.filter { zn -> !checkZn(swappedGates, zn) }
 
-            if (zFailed != null) {
+            val notBroken =
+                buildSet {
+                    (0..maxBits).filter { it !in zFailedList }.forEach {
+                        add("z${it.pad2()}")
+                    }
+                }
+            for (zFailed in zFailedList) {
                 val brokenZ = "z${zFailed.pad2()}"
 
-                val alreadyVisited =
-                    buildSet {
-                        (0..<zFailed).forEach {
-                            addAll(addInputs("z${it.pad2()}", gates))
-                        }
-                    }
-                val alreadySwapped =
-                    swapped
-                        .flatMap {
-                            listOf(
-                                it.first,
-                                it.second,
-                            )
-                        }.toSet()
+                val alreadyVisited = createAlreadyVisited(zFailed)
+                val alreadySwapped = swapped.flatMap { listOf(it.first, it.second) }.toSet()
 
-                val swapOptions = swappedGates.keys - alreadyVisited - alreadySwapped - brokenZ
+                val swapOptions = swappedGates.keys - alreadyVisited - alreadySwapped - brokenZ - notBroken
 
                 val candidates =
                     (setOf(brokenZ) + addInputs(brokenZ, gates) - alreadyVisited)
@@ -121,35 +126,49 @@ class Day24(
                             checkZn(swappedGates.swap(newSwap), zFailed)
                         }
 
-                // println("Candidates for $brokenZ: $candidates (swapped $swapped)")
+                val swapsResult =
+                    coroutineScope {
+                        val deferredResults =
+                            candidates.map { candidate ->
+                                async(Dispatchers.Default) {
+                                    val fixSwaps =
+                                        swapGatesRecursive(
+                                            swappedGates.swap(candidate),
+                                            swapped + candidate,
+                                            needToSwap - 1,
+                                            zFailed..fromTo.last,
+                                            checkZn,
+                                            test,
+                                            maxBits,
+                                        )
+                                    return@async fixSwaps
+                                }
+                            }
+                        deferredResults.awaitAll()
+                    }.filterNotNull().firstOrNull()
 
-                for (candidate in candidates) {
-                    val fixSwaps =
-                        swapGatesRecursive(
-                            swappedGates.swap(candidate),
-                            swapped + candidate,
-                            needToSwap - 1,
-                            zFailed..fromTo.last,
-                            checkZn,
-                            test,
-                            maxBits,
-                        )
-                    if (fixSwaps != null) {
-                        return fixSwaps
-                    }
-                }
-                return null
+                return swapsResult
             }
         }
         return null
     }
 
-    private fun testBaseCase(
+    private val alreadyVisitedCache = mutableMapOf<Int, Set<String>>()
+
+    private fun createAlreadyVisited(zFailed: Int) =
+        alreadyVisitedCache.getOrPut(zFailed) {
+            buildSet {
+                (zFailed - 1 downTo 0).forEach {
+                    addAll(addInputs("z${it.pad2()}", gates))
+                }
+            }
+        }
+
+    private fun passTestCases(
         swappedGates: Map<String, Gate>,
-        swapped: Set<Pair<String, String>>,
         test: (Long, Long) -> Long,
         maxBits: Int,
-    ): Set<Pair<String, String>>? {
+    ): Boolean {
         val xs = inputs.keys.filter { it.startsWith("x") }.sortedDescending()
         val ys = inputs.keys.filter { it.startsWith("y") }.sortedDescending()
         val expected = test(xs.binToLong(inputs), ys.binToLong(inputs))
@@ -165,10 +184,10 @@ class Day24(
 
             if (randomChecksPassed) {
                 // println("REALLY FOUND (with high probability)!!!! $swapped")
-                return swapped
+                return true
             }
         }
-        return null
+        return false
     }
 
     private fun checkZnAnd(
@@ -225,6 +244,7 @@ class Day24(
             changes = false
             for (wire in remaining.toList()) {
                 val gate = gates[wire]!!
+
                 val missingInputs =
                     listOf(gate.inputWireA, gate.inputWireB)
                         .filter { outputs.getOrDefault(it, -1) == -1 }
@@ -243,6 +263,7 @@ class Day24(
                 break
             }
         }
+
         return if (zs.count { outputs[it] == -1 } == 0) {
             zs.binToLong(outputs)
         } else {
