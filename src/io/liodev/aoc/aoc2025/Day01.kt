@@ -4,6 +4,7 @@ import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import kotlin.math.abs
+import kotlin.math.max
 
 // --- 2025 Day 1 Secret Entrance ---
 class Day01(
@@ -33,7 +34,7 @@ class Day01(
         for (inst in instructions) {
             val min = minOf(position, position + inst)
             val max = maxOf(position, position + inst)
-            zero += (min..max).count { it.mod(100) == 0 }
+            zero += max.floor(100) - min.ceil(100) + 1
             position = (position + inst).mod(100)
             if (position == 0) {
                 zero--
@@ -42,6 +43,11 @@ class Day01(
         return zero
     }
 }
+
+private fun Int.floor(divider: Int) = this.floorDiv(divider)
+
+private fun Int.ceil(divider: Int) = (this + divider - 1).floorDiv(divider)
+
 
 fun main() {
     val name = Day01::class.simpleName
