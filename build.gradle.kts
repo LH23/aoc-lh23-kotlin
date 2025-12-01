@@ -25,8 +25,4 @@ tasks {
             java.srcDirs("src")
         }
     }
-
-    wrapper {
-        gradleVersion = "8.11"
-    }
 }
