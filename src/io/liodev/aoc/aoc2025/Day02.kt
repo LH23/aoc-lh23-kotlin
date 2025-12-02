@@ -1,7 +1,6 @@
 package io.liodev.aoc.aoc2025
 
 import io.liodev.aoc.Day
-import io.liodev.aoc.println
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 
@@ -31,7 +30,7 @@ private fun String.invalidIdValue(): Long {
 
 private fun String.extraInvalidIdValue(): Long {
     val size = this.length
-    for (pieceSize in 1..<size) {
+    for (pieceSize in 1..< size / 2 + 1) {
         if (size % pieceSize != 0) continue
         val piece = this.take(pieceSize)
         if (this == piece.repeat(size / pieceSize)) {
@@ -46,5 +45,5 @@ fun main() {
     val year = 2025
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day02(testInput), Day02(realInput), year)
+    runDay(Day02(testInput), Day02(realInput), year, printTimings = true)
 }

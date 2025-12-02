@@ -3,8 +3,6 @@ package io.liodev.aoc.aoc2025
 import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
-import kotlin.math.abs
-import kotlin.math.max
 
 // --- 2025 Day 1 Secret Entrance ---
 class Day01(
@@ -18,35 +16,36 @@ class Day01(
 
     override fun solvePart1(): Int {
         var position = 50
-        var zero = 0
+        var zeroes = 0
         for (inst in instructions) {
             position = (position + inst).mod(100)
             if (position == 0) {
-                zero++
+                zeroes++
             }
         }
-        return zero
+        return zeroes
     }
 
     override fun solvePart2(): Int {
         var position = 50
-        var zero = 0
+        var zeroes = 0
         for (inst in instructions) {
             val min = minOf(position, position + inst)
             val max = maxOf(position, position + inst)
-            zero += max.floor(100) - min.ceil(100) + 1
+            zeroes += countZeroesInRange(min, max)
             position = (position + inst).mod(100)
             if (position == 0) {
-                zero--
+                // will be counted in the next range again
+                zeroes--
             }
         }
-        return zero
+        return zeroes
     }
+
+    private fun countZeroesInRange(min: Int, max: Int) = max.floorDiv(100) - min.ceilDiv(100) + 1
 }
 
-private fun Int.floor(divider: Int) = this.floorDiv(divider)
-
-private fun Int.ceil(divider: Int) = (this + divider - 1).floorDiv(divider)
+private fun Int.ceilDiv(divider: Int) = (this + divider - 1).floorDiv(divider)
 
 
 fun main() {
