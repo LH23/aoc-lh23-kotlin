@@ -26,3 +26,7 @@ tasks {
         }
     }
 }
+// improve Day error print in console
+tasks.withType<JavaExec> {
+    setIgnoreExitValue(true)
+}
