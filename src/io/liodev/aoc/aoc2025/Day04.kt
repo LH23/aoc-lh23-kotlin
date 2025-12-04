@@ -4,7 +4,9 @@ import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.Coord
-import io.liodev.aoc.utils.times
+import io.liodev.aoc.utils.allCoordinates
+import io.liodev.aoc.utils.get
+import io.liodev.aoc.utils.set
 import kotlin.collections.count
 
 // --- 2025 Day 4: Printing Department ---
@@ -15,31 +17,32 @@ class Day04(
 
     private val grid = input.split("\n").map { it.toList() }
 
-    override fun solvePart1(): Int {
-        return (grid.indices * grid[0].indices).count { (r, c) ->
-            grid[r][c] == '@' && lessThanFourPapersAround(r, c, grid)
-        }
+    override fun solvePart1(): Int = grid.allCoordinates.count { coord ->
+        grid.isPaper(coord) && grid.lessThanFourPapersAround(coord)
     }
 
     override fun solvePart2(): Int {
         var removedPapers = 0
         val mutableGrid = grid.map { it.toMutableList() }
         while (true) {
-            val toRemove = (mutableGrid.indices * mutableGrid[0].indices).filter { (r, c) ->
-                mutableGrid[r][c] == '@' && lessThanFourPapersAround(r, c, mutableGrid)
+            val toRemove = mutableGrid.allCoordinates.filter { coord ->
+                mutableGrid.isPaper(coord) && mutableGrid.lessThanFourPapersAround(coord)
             }
             if (toRemove.isEmpty()) break
             removedPapers += toRemove.size
-            toRemove.forEach { (r, c) ->
-                mutableGrid[r][c] = '.'
+            toRemove.forEach { coord ->
+                mutableGrid[coord] = '.'
             }
         }
         return removedPapers
     }
 
-    private fun lessThanFourPapersAround(r: Int, c: Int, grid: List<List<Char>>): Boolean =
-         Coord(r, c).getBorder().count { it.validIndex(grid) && grid[it.r][it.c] == '@' } < 4
 }
+
+private fun List<List<Char>>.isPaper(coord: Coord): Boolean = this[coord] == '@'
+
+private fun List<List<Char>>.lessThanFourPapersAround(coord: Coord) : Boolean =
+    coord.getBorder().count { it.validIndex(this) && this[it] == '@' } < 4
 
 fun main() {
     val name = Day04::class.simpleName

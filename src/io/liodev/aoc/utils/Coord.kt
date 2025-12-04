@@ -164,6 +164,9 @@ fun <E> List<List<E>>.findAll(e: E): List<Coord> {
     return list
 }
 
+val <E> List<List<E>>.allCoordinates: List<Coord>
+    get() = (this.indices * this[0].indices).map { (r, c) -> Coord(r, c) }
+
 fun <E> List<List<E>>.printMatrix(separator: String = "") {
     this.forEach { row ->
         println(row.joinToString(separator) { it.toString() })
