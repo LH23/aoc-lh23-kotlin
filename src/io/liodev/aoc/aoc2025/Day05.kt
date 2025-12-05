@@ -18,23 +18,15 @@ class Day05(
 
     private val ingredients = input.substringAfter("\n\n").lines().map { it.toLong() }
 
-    override fun solvePart1(): Long {
-        return ingredients.count { ingredientID -> freshRanges.any { it.contains(ingredientID)} }.toLong()
-    }
+    override fun solvePart1(): Long =
+        ingredients.count { ingredientID -> freshRanges.any { it.contains(ingredientID)} }.toLong()
 
     override fun solvePart2(): Long {
         val disjointRanges = mutableSetOf<LongRange>()
-        for (freshRange in freshRanges.sortedBy { it.first }) {
-            if (disjointRanges.any { it.contains(freshRange) }) {
-                continue
-            }
-            if (disjointRanges.none { it.overlaps(freshRange) }) {
-                disjointRanges.add(freshRange)
-                continue
-            }
-
+        for (freshRange in freshRanges) {
             val overlapping = disjointRanges.filter { it.overlaps(freshRange) }.toSet()
             disjointRanges.removeAll(overlapping)
+
             val newRange = overlapping.fold(freshRange) { acc, range ->
                 minOf(acc.first, range.first)..maxOf(acc.last, range.last)
             }
@@ -43,8 +35,6 @@ class Day05(
         return disjointRanges.sumOf { it.last + 1 - it.first }
     }
 }
-
-private fun LongRange.contains(other: LongRange): Boolean = this.first <= other.first && other.last <= this.last
 
 private fun LongRange.overlaps(other: LongRange) = this.first <= other.last && other.first <= this.last
 
