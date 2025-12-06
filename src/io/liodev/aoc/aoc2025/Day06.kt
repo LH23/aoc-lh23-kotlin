@@ -10,7 +10,7 @@ class Day06(
 ) : Day<Long> {
     override val expectedValues = listOf(4277556L, 7098065460541, 3263827, 13807151830618)
 
-    private val operationsList = input.split("\n").toOperationsList()
+    private val operationsListWithSpaces = input.split("\n").toOperationsList()
 
     private data class Operation(
         val operands: List<Long>,
@@ -30,11 +30,12 @@ class Day06(
     override fun solvePart2(): Long = solveHomework { charArray -> charArray.transpose().asLongs() }
 
     fun solveHomework(getOperands: (List<List<Char>>) -> List<Long>): Long {
-        return operationsList[0].indices.map { j ->
-            val x = (0..<operationsList.lastIndex).map { i -> operationsList[i][j].toList() }
+        return operationsListWithSpaces[0].indices.map { j ->
+            val charArray =
+                (0..<operationsListWithSpaces.lastIndex).map { i -> operationsListWithSpaces[i][j].toList() }
             Operation(
-                operands = getOperands(x),
-                operation = operationsList[operationsList.lastIndex][j].trim(),
+                operands = getOperands(charArray),
+                operation = operationsListWithSpaces.last()[j].trim(),
             )
         }.sumOf { it.solve() }
     }
