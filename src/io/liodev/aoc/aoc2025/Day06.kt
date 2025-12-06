@@ -26,11 +26,13 @@ class Day06(
     }
 
     override fun solvePart1(): Long {
-        val operationsList = operationsListStr.map { line -> line.split("\\s".toRegex()).filter { it.isNotEmpty() } }
+        val operationsList =
+            operationsListStr.map { line -> line.split("\\s+".toRegex()).filter { it.isNotEmpty() } }
+        val operationsIndices = operationsList[0].indices
         val operandsIndices = 0..<operationsList.lastIndex
         val operationIndex = operationsList.lastIndex
 
-        return operationsList[0].indices.map { j ->
+        return operationsIndices.map { j ->
             Operation(
                 operands = operandsIndices.map { i -> operationsList[i][j].toLong() },
                 operation = operationsList[operationIndex][j],
@@ -40,27 +42,29 @@ class Day06(
 
     override fun solvePart2(): Long {
         val operationIndex = operationsListStr.lastIndex
-        val operationPositions = operationsListStr[operationIndex].withIndex().filter { (_, value) -> value != ' ' }.map { it.index }
-        val chunkSizes = operationPositions.zipWithNext().map { (a,b) -> b - a - 1} + (operationsListStr.maxOf{ it.length } - operationPositions.last())
+        val maxLineSize = operationsListStr.maxOf { it.length }
+        val operationPositions =
+            operationsListStr[operationIndex].withIndex().filter { (_, value) -> value != ' ' }.map { it.index }
+        val chunkSizes = 
+            operationPositions.zipWithNext().map { (a, b) -> b - a - 1 } + (maxLineSize - operationPositions.last())
 
         val operationsList = operationsListStr.map { line ->
+            //val paddedLine = line.padEnd(maxLineSize, ' ') <- AndroidStudio removing my trailing whitespaces! -_-
             buildList {
                 var currentIndex = 0
                 for (size in chunkSizes) {
-                    val chunk = if (currentIndex + size > line.length)
-                        line.substring(currentIndex).padEnd(size, ' ')
-                    else
-                        line.substring(currentIndex, currentIndex + size)
-                    add(chunk)
+                    add(line.substring(currentIndex, currentIndex + size))
                     currentIndex += size + 1
                 }
             }
         }
+        val operationsIndices = operationsList[0].indices
         val operandsIndices = 0..<operationsList.lastIndex
 
-        return operationsList[0].indices.map { j ->
+        return operationsIndices.map { j ->
             Operation(
-                operands = operandsIndices.map { i -> operationsList[i][j].toList() }.transpose().map { it.joinToString("").trim().toLong() },
+                operands = operandsIndices.map { i -> operationsList[i][j].toList() }.transpose()
+                    .map { it.joinToString("").trim().toLong() },
                 operation = operationsList[operationIndex][j].trim(),
             )
         }.sumOf { it.solve() }
@@ -78,5 +82,5 @@ fun main() {
     val year = 2025
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day06(testInput), Day06(realInput), year)
+    runDay(Day06(testInput), Day06(realInput), year, printTimings = true)
 }
