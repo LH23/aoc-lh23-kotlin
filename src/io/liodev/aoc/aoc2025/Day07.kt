@@ -74,5 +74,5 @@ fun main() {
     val year = 2025
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day07(testInput), Day07(realInput), year, skipTests = listOf(true, true, false, false))
+    runDay(Day07(testInput), Day07(realInput), year, printTimings = true)
 }
