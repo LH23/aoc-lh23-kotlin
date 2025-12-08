@@ -4,6 +4,9 @@ import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.Coord3D
+import java.util.PriorityQueue
+import kotlin.collections.component1
+import kotlin.collections.component2
 
 // --- 2025 Day 8: Playground ---
 class Day08(
@@ -37,16 +40,37 @@ class Day08(
         }.toList().let { (a, b) -> a.x.toLong() * b.x}
     }
 
+    private data class PairWithDistance(val pair: Set<Coord3D>, val distance: Double)
+
     private fun getSortedDistances(): List<Set<Coord3D>> {
-        val distances = mutableMapOf<Set<Coord3D>, Double>()
-        for (box in junctionBoxes) {
-            for (otherBox in junctionBoxes) {
-                if (box != otherBox && !distances.containsKey(setOf(box, otherBox))) {
-                    distances[setOf(box,otherBox)] = box.euclideanDistance(otherBox)
-                }
+        val distances = mutableListOf<PairWithDistance>()
+        for (i in junctionBoxes.indices) {
+            val box = junctionBoxes[i]
+            for (j in i + 1 until junctionBoxes.size) {
+                val otherBox = junctionBoxes[j]
+                val distance = box.euclideanDistance(otherBox)
+                distances.add(PairWithDistance(setOf(box, otherBox), distance))
             }
         }
-        return distances.toList().sortedBy { (_, value) -> value }.map { it.first }
+        return distances.sortedBy { it.distance }.map { it.pair }
+    }
+
+    // slower than getSortedDistances in practice
+    private fun getSortedDistancesHeap(): List<Set<Coord3D>> {
+        val heap = PriorityQueue<PairWithDistance>(compareBy { it.distance })
+        for (i in junctionBoxes.indices) {
+            val box = junctionBoxes[i]
+            for (j in i + 1 until junctionBoxes.size) {
+                val otherBox = junctionBoxes[j]
+                val distance = box.euclideanDistance(otherBox)
+                heap.offer(PairWithDistance(setOf(box, otherBox), distance))
+            }
+        }
+        return buildList {
+            while (heap.isNotEmpty()) {
+                add(heap.poll().pair)
+            }
+        }
     }
 
     fun isTestInput(): Boolean {
