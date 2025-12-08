@@ -16,9 +16,9 @@ class Day08(
             Coord3D(x.toInt(), y.toInt(), z.toInt())
         }
     }
+    private val sortedDistances = getSortedDistances()
 
     override fun solvePart1(): Long {
-        val sortedDistances = getSortedDistances()
         val numConnections = if (isTestInput()) 10 else 1000
 
         val circuits = mutableListOf<MutableSet<Coord3D>>()
@@ -30,9 +30,7 @@ class Day08(
     }
 
     override fun solvePart2(): Long {
-        val sortedDistances = getSortedDistances()
         val circuits = mutableListOf<MutableSet<Coord3D>>()
-        
         return sortedDistances.first { pairCoords ->
             circuits.processNewConnection(pairCoords)
             circuits.firstOrNull()?.size == junctionBoxes.size
@@ -44,8 +42,7 @@ class Day08(
         for (box in junctionBoxes) {
             for (otherBox in junctionBoxes) {
                 if (box != otherBox && !distances.containsKey(setOf(box, otherBox))) {
-                    val distance = box.euclideanDistance(otherBox)
-                    distances[setOf(box,otherBox)] = distance
+                    distances[setOf(box,otherBox)] = box.euclideanDistance(otherBox)
                 }
             }
         }
@@ -67,9 +64,9 @@ private fun MutableList<MutableSet<Coord3D>>.processNewConnection(pairCoords: Se
     }
     if (circuitA == null && circuitB == null) {
         this.add(pairCoords.toMutableSet())
-    } else if (circuitA != null && circuitB != null && circuitA != circuitB) {
-        val removed = this.remove(circuitB)
-        assert(removed)
+    } else if (circuitA != null && circuitB != null) {
+        if (circuitA == circuitB) return
+        this.remove(circuitB)
         circuitA.addAll(circuitB)
     } else {
         circuitA?.addAll(pairCoords)
