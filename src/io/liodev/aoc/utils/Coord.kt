@@ -243,3 +243,24 @@ fun <E> List<MutableList<E>>.floodFill(
         }
     }
 }
+
+fun <E> List<List<E>>.floodOverflows(
+    at: Coord,
+    water: E,
+    space: E,
+): Boolean {
+    val copy = this.map { it.toMutableList() }
+    
+    val filledCoords = mutableListOf<Coord>()
+    val queue = ArrayDeque<Coord>().apply { add(at) }
+    while (queue.isNotEmpty()) {
+        val next = queue.removeFirst()
+        if (!copy.validIndex(next)) return true
+        if (copy[next] == space) {
+            copy[next] = water
+            filledCoords.add(next)
+            queue.addAll(next.getBorder())
+        }
+    }
+    return false
+}
