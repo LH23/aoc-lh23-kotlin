@@ -4,7 +4,6 @@ import io.liodev.aoc.Day
 import io.liodev.aoc.readInputAsString
 import io.liodev.aoc.runDay
 import io.liodev.aoc.utils.Coord
-import io.liodev.aoc.utils.get
 import io.liodev.aoc.utils.findAll
 import io.liodev.aoc.utils.floodFill
 import io.liodev.aoc.utils.floodOverflows
@@ -14,50 +13,50 @@ import kotlin.math.abs
 class Day09(
     val input: String,
 ) : Day<Long> {
-    override val expectedValues = listOf(50L, 4773451098, 24, 1429_075_575)
+    override val expectedValues = listOf(50L, 4773451098, 24, 1429075575)
 
-    private val redTiles =
-        input.split("\n").map { it.split(',')
-            .let { (c, r) -> Coord(r.toInt(), c.toInt()) } }
+    private val redTiles = input.split("\n").map {
+        it.split(',').let { (c, r) -> Coord(r.toInt(), c.toInt()) }
+    }
 
     private val areas = buildList {
         for (i in redTiles.indices) {
             for (j in i + 1 until redTiles.size) {
-                add(PairsWithArea(setOf(redTiles[i], redTiles[j]), calculateArea(redTiles[i], redTiles[j])))
+                add(
+                    PairsWithArea(
+                        setOf(redTiles[i], redTiles[j]), calculateArea(redTiles[i], redTiles[j])
+                    )
+                )
             }
         }
     }.sortedByDescending { it.area }
-    
+
     data class PairsWithArea(
         val coords: Set<Coord>,
         val area: Long,
     )
+
     override fun solvePart1(): Long {
         return areas.maxOf { it.area }
     }
-    
+
     override fun solvePart2(): Long {
         val usedRows = redTiles.map { it.r }.toSet().sorted()
         val usedColumns = redTiles.map { it.c }.toSet().sorted()
-        
-        val borderSet = calculateBorder(redTiles).toSet()
 
-        val m = usedRows.size
-        val n = usedColumns.size
-        val floor = List(m) { _ ->
-            MutableList(n) { _ -> '.' }
-        }
-        
-        for (r in usedRows.indices) {
-            for (c in usedColumns.indices) {
+        val greenBorderTiles = calculateGreenBorder(redTiles).toSet()
+
+        val floor = List(usedRows.size) { r ->
+            MutableList(usedColumns.size) { c ->
                 val coord = Coord(usedRows[r], usedColumns[c])
-                floor[r][c] = when (coord) {
+                when (coord) {
                     in redTiles -> 'R'
-                    in borderSet -> 'G'
+                    in greenBorderTiles -> 'G'
                     else -> '.'
                 }
             }
         }
+
         val emptySeats = floor.findAll('.')
         for (seat in emptySeats) {
             if (!floor.floodOverflows(seat, 'X', '.')) {
@@ -85,21 +84,18 @@ class Day09(
         }.area
     }
 
-    private fun calculateBorder(redTiles: List<Coord>): List<Coord> {
-        val border = mutableListOf<Coord>()
+    private fun calculateGreenBorder(redTiles: List<Coord>): List<Coord> = buildList { 
         (redTiles + redTiles.first()).zipWithNext().forEach { (t1, t2) ->
-            border.add(t1)
             if (t1.r == t2.r) {
-                for (c in minOf(t1.c, t2.c) + 1  until maxOf(t1.c, t2.c)) {
-                    border.add(Coord(t1.r, c))
+                for (c in minOf(t1.c, t2.c) + 1 until maxOf(t1.c, t2.c)) {
+                    add(Coord(t1.r, c))
                 }
             } else if (t1.c == t2.c) {
                 for (r in minOf(t1.r, t2.r) + 1 until maxOf(t1.r, t2.r)) {
-                    border.add(Coord(r, t1.c))
+                    add(Coord(r, t1.c))
                 }
             }
         }
-        return border
     }
 
     private fun calculateArea(

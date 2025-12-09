@@ -228,6 +228,9 @@ fun <T, S, V> Collection<T>.cartesianProduct(
     transformer: (first: T, second: S) -> V,
 ): List<V> = this.flatMap { first -> other.map { second -> transformer.invoke(first, second) } }
 
+/**
+ * Flood fill the given grid from the given coordinate.
+ */
 fun <E> List<MutableList<E>>.floodFill(
     at: Coord,
     water: E,
@@ -244,6 +247,11 @@ fun <E> List<MutableList<E>>.floodFill(
     }
 }
 
+/**
+ * Try to flood fill from the given coordinate.
+ * Returns true if the fill overflows the boundaries of the grid, false otherwise.
+ * It does not change the original grid.
+ */
 fun <E> List<List<E>>.floodOverflows(
     at: Coord,
     water: E,
