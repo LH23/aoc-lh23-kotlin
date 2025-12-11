@@ -8,7 +8,7 @@ import io.liodev.aoc.runDay
 class Day11(
     val input: String,
 ) : Day<Long> {
-    override val expectedValues = listOf(0L, 652, 0, 362956369749210)
+    override val expectedValues = listOf(2L, 652, 4, 362956369749210)
 
     private val serverGraph = input.split("\n").associate {
         val device = it.substringBefore(":")
@@ -16,14 +16,20 @@ class Day11(
         device to connections
     }
 
-    override fun solvePart1(): Long {
-        val start = "you"
-        val end = "out"
-        val paths = bfs(start, end, setOf())
-        return paths.size.toLong()
+    override fun solvePart1(): Long = countPathsWithCache("you", "out")
+
+    override fun solvePart2(): Long = countPathsWithCache("svr", "out", requiredElements = setOf("fft", "dac"))
+
+    data class CacheKey(val start: String, val end: String, val requiredElements: Set<String>)
+    var cache: MutableMap<CacheKey, Long> = mutableMapOf()
+    
+    fun countPathsWithCache(start: String, end: String, requiredElements: Set<String> = setOf()): Long {
+        cache = mutableMapOf()
+        return countPathsCacheRec(start, end, requiredElements)
     }
 
-    override fun solvePart2(): Long {
+    // SLOW AND BAD!
+    fun countPathsPartially(): Long {
         // visualizing the graph :D
         val svr = "svr"
         val section1 = setOf("akw", "gcv", "hng")
@@ -35,22 +41,21 @@ class Day11(
         val section5 = setOf("you", "vkz", "iqd", "poa", "xlo")
         val out = "out"
 
-        val pathsSvrFft = bfs(svr, fft, section2).size
+        val pathsSvrFft = countPathsBfs(svr, fft, section2)
         val pathsFftDac = section3.sumOf {
-            val paths1 = bfs( fft, it, section4)
-            val paths2 = bfs( it, dac, section5 + "hud") // we hate the hud
-            paths1.size * paths2.size
+            val paths1 = countPathsBfs( fft, it, section4)
+            val paths2 = countPathsBfs( it, dac, section5)
+            paths1 * paths2
         }
-        val pathsDacOut = bfs(dac, out, setOf()).size
+        val pathsDacOut = countPathsBfs(dac, out, setOf())
         
-        return pathsSvrFft.toLong() * pathsFftDac * pathsDacOut
+        return pathsSvrFft * pathsFftDac * pathsDacOut
     }
-
-    fun bfs(start: String, final: String, excludeSet: Set<String>): List<List<String>> {
-        val result = mutableListOf<List<String>>()
+    
+    fun countPathsBfs(start: String, final: String, excludeSet: Set<String> = setOf()): Long {
         val queue = ArrayDeque<List<String>>()
         queue.add(listOf(start))
-
+        var paths = 0L
         while (queue.isNotEmpty()) {
             val path = queue.removeFirst()
             val current = path.last()
@@ -59,7 +64,8 @@ class Day11(
                 continue
             }
             if (current == final) {
-                result.add(path)
+                paths++
+                continue
             }
             for (neighbor in serverGraph[current] ?: emptyList()) {
                 if (neighbor !in path) {
@@ -67,6 +73,22 @@ class Day11(
                 }
             }
         }
+        return paths
+    }
+
+    fun countPathsCacheRec(current: String, final: String, requiredElements: Set<String>): Long {
+        val required = requiredElements - current
+        val key = CacheKey(current, final, required)
+        cache[key]?.let { return it }
+
+        if (current == final) {
+            return if (required.isEmpty()) 1L else 0L
+        }
+    
+        val result = serverGraph[current]?.sumOf { neighbor ->
+            countPathsCacheRec(neighbor, final, required)
+        }?: 0L
+        cache[key] = result
         return result
     }
 }
@@ -119,5 +141,5 @@ fun main() {
     val year = 2025
     val testInput = readInputAsString("src/input/$year/${name}_test.txt")
     val realInput = readInputAsString("src/input/$year/$name.txt")
-    runDay(Day11(testInput), Day11(realInput), year)
+    runDay(Day11(testInput), Day11(realInput), year, printTimings = true)
 }
