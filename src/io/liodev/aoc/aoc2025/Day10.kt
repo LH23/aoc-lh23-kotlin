@@ -61,20 +61,14 @@ class Day10(
             return null
         }
 
-        private fun List<Boolean>.toLights(): String =
-            "[" + this.map { if (it) '#' else '.' }.joinToString("") + "]"
-
         fun minStepsToMatchJoltagesZ3(): Int {
             val context = Context()
             val solver = context.mkSolver()
 
             val vars: List<IntExpr> = buttonActivations.mapIndexed { index, _ ->
                 val v = context.mkIntConst("bp$index")
-                solver.add(context.mkGe(v, context.mkInt(0)))
+                solver.add(context.mkGe(v, context.mkInt(0))) // bp_x >= 0
                 v
-            }
-            val constants = joltageRequirements.mapIndexed { index, joltage ->
-                context.mkInt(joltage)
             }
             joltageRequirements.mapIndexed { i, joltage ->
                 val sumTerms = buttonActivations.mapIndexed { j, activation ->
@@ -84,18 +78,18 @@ class Day10(
                         null
                     }
                 }.filterNotNull()
-                solver.add(context.mkEq(constants[i], context.mkAdd(*sumTerms.toTypedArray())))
+                solver.add(context.mkEq(context.mkInt(joltage), context.mkAdd(*sumTerms.toTypedArray())))  // j_x = bp_i0 + bp_i1 + ...
             }
-            val count = context.mkIntConst("totalCount")
-            solver.add(context.mkEq(count, context.mkAdd(*vars.toTypedArray())))
+            val count = context.mkIntConst("buttonsPresses")
+            solver.add(context.mkEq(count, context.mkAdd(*vars.toTypedArray()))) // count = bp_0 + bp_1 + ...
             
-            var min = Int.MAX_VALUE
+            var minCount = Int.MAX_VALUE
             while (solver.check() == Status.SATISFIABLE) {
-                min = solver.model.eval(count, true).toString().toInt()
-                val newMin = context.mkLt(count, context.mkInt(min))
+                minCount = solver.model.eval(count, true).toString().toInt()
+                val newMin = context.mkLt(count, context.mkInt(minCount)) // count < minCount
                 solver.add(newMin)
             }
-            return min
+            return minCount
         }
         
         // still not working :( too slow or invalid optimizations
