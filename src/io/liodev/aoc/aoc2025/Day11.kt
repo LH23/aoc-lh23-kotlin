@@ -36,14 +36,14 @@ class Day11(
         val out = "out"
 
         val pathsSvrFft = bfs(svr, fft, section2).size
-        val pathsFftSec3 = section3.sumOf {
+        val pathsFftDac = section3.sumOf {
             val paths1 = bfs( fft, it, section4)
-            val paths2 = bfs( it, dac, section5) // we hate the hud
-            paths1.size* paths2.size
+            val paths2 = bfs( it, dac, section5 + "hud") // we hate the hud
+            paths1.size * paths2.size
         }
         val pathsDacOut = bfs(dac, out, setOf()).size
         
-        return pathsSvrFft.toLong() * pathsFftSec3 * pathsDacOut
+        return pathsSvrFft.toLong() * pathsFftDac * pathsDacOut
     }
 
     fun bfs(start: String, final: String, excludeSet: Set<String>): List<List<String>> {
