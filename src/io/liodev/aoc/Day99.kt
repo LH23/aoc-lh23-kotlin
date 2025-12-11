@@ -7,16 +7,16 @@ import io.liodev.aoc.runDay
 // TEMPLATE 2024
 class Day99(
     input: String,
-) : Day<Int> {
-    override val expectedValues = listOf(-1, -1, -1, -1)
+) : Day<Long> {
+    override val expectedValues = listOf(-1L, -1, -1, -1)
 
     private val parsedInput = input.split("\n")
 
-    override fun solvePart1(): Int {
+    override fun solvePart1(): Long {
         return 0
     }
 
-    override fun solvePart2(): Int {
+    override fun solvePart2(): Long {
         return 0
     }
 }
