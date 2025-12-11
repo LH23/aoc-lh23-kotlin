@@ -93,49 +93,6 @@ class Day11(
     }
 }
 
-fun convertToDot(
-    input: String,
-    isDirected: Boolean = true,
-    highlightNodes: List<String> = emptyList()
-): String {
-    val sb = StringBuilder()
-
-    val graphType = if (isDirected) "digraph" else "graph"
-    val edgeSymbol = if (isDirected) "->" else "--"
-
-    sb.appendLine("$graphType G {")
-    sb.appendLine("  node [shape=box style=filled fillcolor=\"#dddddd\"];")
-    sb.appendLine("  overlap=false;")
-    sb.appendLine("  splines=true;")
-    sb.appendLine("")
-
-    if (highlightNodes.isNotEmpty()) {
-        sb.appendLine("  // Highlighted Nodes")
-        for (node in highlightNodes) {
-            sb.appendLine("  $node [style=\"filled,bold\" fillcolor=\"#ff4444\" color=\"#880000\" penwidth=3 fontsize=20 fontcolor=white];")
-        }
-        sb.appendLine("")
-    }
-
-    sb.appendLine("  // Edges")
-    input.lineSequence().forEach { line ->
-        if (line.isNotBlank()) {
-            val parts = line.split(":")
-            val source = parts[0].trim()
-            if (parts.size > 1) {
-                val destinations = parts[1].trim().split(Regex("\\s+"))
-                for (dest in destinations) {
-                    if (dest.isNotBlank()) {
-                        sb.appendLine("  $source $edgeSymbol $dest;")
-                    }
-                }
-            }
-        }
-    }
-    sb.appendLine("}")
-    return sb.toString()
-}
-
 fun main() {
     val name = Day11::class.simpleName
     val year = 2025
